@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza Order</title>
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f0eb; color: #333; line-height: 1.5; }
+
+/* ── Layout ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+header { text-align: center; padding: 24px 0 8px; }
+header h1 { font-size: 2rem; color: #c0392b; }
+header p { color: #777; font-size: 0.95rem; }
+
+.app-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+@media (max-width: 800px) { .app-grid { grid-template-columns: 1fr; } }
+
+/* ── Cards ── */
+.card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 1.15rem; color: #c0392b; margin-bottom: 14px; border-bottom: 2px solid #f2e0db; padding-bottom: 8px; }
+
+/* ── Form elements ── */
+label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.92rem; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select, textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; transition: border .2s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: #c0392b; box-shadow: 0 0 0 2px rgba(192,57,43,.15); }
+.field { margin-bottom: 14px; }
+.field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.field-row .field { flex: 1; min-width: 140px; }
+
+/* Radio / Checkbox groups */
+.option-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.option-group label { font-weight: 400; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; transition: .2s; user-select: none; }
+.option-group input { display: none; }
+.option-group input:checked + span { color: #c0392b; }
+.option-group label:has(input:checked) { border-color: #c0392b; background: #fdf0ee; }
+
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.checkbox-group label { font-weight: 400; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; transition: .2s; user-select: none; }
+.checkbox-group input { display: none; }
+.checkbox-group label:has(input:checked) { border-color: #c0392b; background: #fdf0ee; }
+
+/* Errors */
+.error-msg { color: #e74c3c; font-size: 0.82rem; margin-top: 2px; min-height: 1.2em; }
+input.invalid, select.invalid, textarea.invalid { border-color: #e74c3c; }
+
+/* Buttons */
+.btn { display: inline-block; padding: 12px 32px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: .2s; }
+.btn-primary { background: #c0392b; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #a93226; }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn-secondary { background: #eee; color: #333; }
+.btn-secondary:hover { background: #ddd; }
+
+/* ── Summary panel (sticky) ── */
+.summary-panel { position: sticky; top: 20px; }
+.summary-panel h2 { color: #c0392b; }
+.summary-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.92rem; }
+.summary-row.total { font-weight: 700; font-size: 1.05rem; border-top: 2px solid #c0392b; margin-top: 6px; padding-top: 8px; }
+.summary-label { color: #555; }
+.summary-section { margin-bottom: 10px; }
+.summary-section h3 { font-size: 0.88rem; text-transform: uppercase; color: #999; letter-spacing: .5px; margin-bottom: 2px; }
+.summary-detail { font-size: 0.92rem; }
+
+/* ── Confirmation ── */
+.confirmation { text-align: center; }
+.confirmation .order-number { font-size: 2rem; color: #c0392b; font-weight: 700; margin: 12px 0; }
+.confirmation .timestamp { color: #777; margin-bottom: 20px; }
+.conf-details { text-align: left; max-width: 500px; margin: 0 auto; }
+.conf-details .conf-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.93rem; }
+.conf-details .conf-row.total { font-weight: 700; border-top: 2px solid #c0392b; margin-top: 6px; padding-top: 6px; }
+.conf-details h3 { font-size: 0.95rem; color: #c0392b; margin: 14px 0 4px; }
+
+/* Character counter */
+.char-counter { text-align: right; font-size: 0.8rem; color: #999; }
+
+/* Hidden utility */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>&#127829; Pizza Order</h1>
+    <p>Build your perfect pizza and place your order</p>
+  </header>
+
+  <!-- ═══════ FORM VIEW ═══════ -->
+  <div id="formView" class="app-grid">
+    <div class="form-col">
+      <form id="orderForm" novalidate>
+
+        <!-- ── 1. Customer Info ── -->
+        <div class="card">
+          <h2>Customer Information</h2>
+          <div class="field-row">
+            <div class="field">
+              <label for="custName">Full Name *</label>
+              <input type="text" id="custName" autocomplete="name" required>
+              <div class="error-msg" id="errCustName"></div>
+            </div>
+            <div class="field">
+              <label for="custEmail">Email *</label>
+              <input type="email" id="custEmail" autocomplete="email" required>
+              <div class="error-msg" id="errCustEmail"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="custPhone">Phone</label>
+            <input type="tel" id="custPhone" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label>Order Type *</label>
+            <div class="option-group">
+              <label><input type="radio" name="orderType" value="Pickup"><span>Pickup</span></label>
+              <label><input type="radio" name="orderType" value="Delivery"><span>Delivery</span></label>
+            </div>
+            <div class="error-msg" id="errOrderType"></div>
+          </div>
+
+          <!-- Delivery address (conditionally shown) -->
+          <div id="deliveryFields" class="hidden">
+            <div class="field">
+              <label for="street">Street *</label>
+              <input type="text" id="street">
+              <div class="error-msg" id="errStreet"></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="city">City *</label>
+                <input type="text" id="city">
+                <div class="error-msg" id="errCity"></div>
+              </div>
+              <div class="field">
+                <label for="state">State/Region *</label>
+                <input type="text" id="state">
+                <div class="error-msg" id="errState"></div>
+              </div>
+              <div class="field">
+                <label for="postal">Postal Code *</label>
+                <input type="text" id="postal">
+                <div class="error-msg" id="errPostal"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 2. Pizza Builder ── -->
+        <div class="card">
+          <h2>Build Your Pizza</h2>
+
+          <div class="field">
+            <label>Size *</label>
+            <div class="option-group">
+              <label><input type="radio" name="size" value="Small"><span>Small ($10)</span></label>
+              <label><input type="radio" name="size" value="Medium"><span>Medium ($12)</span></label>
+              <label><input type="radio" name="size" value="Large"><span>Large ($14)</span></label>
+            </div>
+            <div class="error-msg" id="errSize"></div>
+          </div>
+
+          <div class="field">
+            <label>Crust *</label>
+            <div class="option-group">
+              <label><input type="radio" name="crust" value="Thin"><span>Thin</span></label>
+              <label><input type="radio" name="crust" value="Hand-tossed"><span>Hand-tossed</span></label>
+              <label><input type="radio" name="crust" value="Deep dish"><span>Deep dish</span></label>
+              <label><input type="radio" name="crust" value="Gluten-free"><span>Gluten-free (+$2)</span></label>
+            </div>
+            <div class="error-msg" id="errCrust"></div>
+          </div>
+
+          <div class="field">
+            <label>Sauce *</label>
+            <div class="option-group">
+              <label><input type="radio" name="sauce" value="Tomato"><span>Tomato</span></label>
+              <label><input type="radio" name="sauce" value="Alfredo"><span>Alfredo (+$1)</span></label>
+              <label><input type="radio" name="sauce" value="Pesto"><span>Pesto (+$1.50)</span></label>
+            </div>
+            <div class="error-msg" id="errSauce"></div>
+          </div>
+
+          <div class="field">
+            <label>Cheese Level *</label>
+            <div class="option-group">
+              <label><input type="radio" name="cheese" value="Light"><span>Light</span></label>
+              <label><input type="radio" name="cheese" value="Normal"><span>Normal</span></label>
+              <label><input type="radio" name="cheese" value="Extra"><span>Extra (+$1)</span></label>
+            </div>
+            <div class="error-msg" id="errCheese"></div>
+          </div>
+
+          <div class="field">
+            <label>Toppings</label>
+            <div class="checkbox-group" id="toppingsGroup">
+              <label><input type="checkbox" name="topping" value="Pepperoni"><span>Pepperoni</span></label>
+              <label><input type="checkbox" name="topping" value="Sausage"><span>Sausage</span></label>
+              <label><input type="checkbox" name="topping" value="Mushrooms"><span>Mushrooms</span></label>
+              <label><input type="checkbox" name="topping" value="Onions"><span>Onions</span></label>
+              <label><input type="checkbox" name="topping" value="Green peppers"><span>Green peppers</span></label>
+              <label><input type="checkbox" name="topping" value="Olives"><span>Olives</span></label>
+              <label><input type="checkbox" name="topping" value="Pineapple"><span>Pineapple</span></label>
+            </div>
+            <div style="font-size:.85rem;color:#888;margin-top:4px;">Each topping +$0.75</div>
+          </div>
+
+          <div class="field" style="max-width:140px;">
+            <label for="qty">Quantity *</label>
+            <input type="number" id="qty" min="1" max="10" value="1">
+            <div class="error-msg" id="errQty"></div>
+          </div>
+        </div>
+
+        <!-- ── 3. Extras ── -->
+        <div class="card">
+          <h2>Extras</h2>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="extra" value="Breadsticks"><span>Breadsticks ($4)</span></label>
+            <label><input type="checkbox" name="extra" value="Soda"><span>Soda ($2)</span></label>
+            <label><input type="checkbox" name="extra" value="Salad"><span>Salad ($5)</span></label>
+          </div>
+        </div>
+
+        <!-- ── 4. Special Instructions ── -->
+        <div class="card">
+          <h2>Special Instructions</h2>
+          <div class="field">
+            <textarea id="instructions" rows="3" maxlength="200" placeholder="Any special requests…"></textarea>
+            <div class="char-counter"><span id="charCount">0</span> / 200</div>
+          </div>
+        </div>
+
+        <!-- ── 5. Payment ── -->
+        <div class="card">
+          <h2>Payment</h2>
+          <div class="field">
+            <label>Payment Method *</label>
+            <div class="option-group">
+              <label><input type="radio" name="payment" value="Card"><span>Card</span></label>
+              <label><input type="radio" name="payment" value="Cash"><span>Cash</span></label>
+            </div>
+            <div class="error-msg" id="errPayment"></div>
+          </div>
+
+          <div id="cardFields" class="hidden">
+            <div class="field">
+              <label for="cardName">Name on Card *</label>
+              <input type="text" id="cardName">
+              <div class="error-msg" id="errCardName"></div>
+            </div>
+            <div class="field">
+              <label for="cardNumber">Card Number *</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="23">
+              <div class="error-msg" id="errCardNumber"></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="cardExp">Expiration (MM/YY) *</label>
+                <input type="text" id="cardExp" placeholder="MM/YY" maxlength="5">
+                <div class="error-msg" id="errCardExp"></div>
+              </div>
+              <div class="field">
+                <label for="cardCvv">CVV *</label>
+                <input type="text" id="cardCvv" placeholder="123" maxlength="4">
+                <div class="error-msg" id="errCardCvv"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="cashMsg" class="hidden" style="padding:12px;background:#fdf0ee;border-radius:8px;margin-top:8px;font-size:.93rem;">
+            Cash on delivery/pickup — pay when you receive your order.
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Place Order</button>
+      </form>
+    </div>
+
+    <!-- ── Live Summary Panel ── -->
+    <div class="summary-col">
+      <div class="card summary-panel" id="summaryPanel">
+        <h2>Order Summary</h2>
+
+        <div class="summary-section">
+          <h3>Customer</h3>
+          <div class="summary-detail" id="sumName">&mdash;</div>
+          <div class="summary-detail" id="sumOrderType">&mdash;</div>
+        </div>
+
+        <div class="summary-section">
+          <h3>Pizza</h3>
+          <div class="summary-detail" id="sumPizza">&mdash;</div>
+          <div class="summary-detail" id="sumToppings">Toppings: None</div>
+          <div class="summary-detail" id="sumQty">Qty: 1</div>
+        </div>
+
+        <div class="summary-section">
+          <h3>Extras</h3>
+          <div class="summary-detail" id="sumExtras">None</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div class="summary-row"><span class="summary-label">Subtotal</span><span id="sumSubtotal">$0.00</span></div>
+          <div class="summary-row" id="sumDeliveryRow" style="display:none;"><span class="summary-label">Delivery Fee</span><span id="sumDelivery">$3.00</span></div>
+          <div class="summary-row"><span class="summary-label">Tax (8.5%)</span><span id="sumTax">$0.00</span></div>
+          <div class="summary-row total"><span>Grand Total</span><span id="sumTotal">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ CONFIRMATION VIEW ═══════ -->
+  <div id="confirmView" class="hidden">
+    <div class="card confirmation">
+      <h2>Order Confirmed!</h2>
+      <div class="order-number" id="confOrderNum"></div>
+      <div class="timestamp" id="confTimestamp"></div>
+      <div class="conf-details" id="confDetails"></div>
+      <br>
+      <button class="btn btn-secondary" id="newOrderBtn">Start New Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ══════════════════════════════════════
+     Pricing constants
+     ══════════════════════════════════════ */
+  const PRICES = {
+    size: { Small: 10, Medium: 12, Large: 14 },
+    crust: { Thin: 0, "Hand-tossed": 0, "Deep dish": 0, "Gluten-free": 2 },
+    sauce: { Tomato: 0, Alfredo: 1, Pesto: 1.5 },
+    cheese: { Light: 0, Normal: 0, Extra: 1 },
+    topping: 0.75,
+    extras: { Breadsticks: 4, Soda: 2, Salad: 5 },
+    delivery: 3,
+    taxRate: 0.085
+  };
+
+  /* ══════════════════════════════════════
+     DOM references
+     ══════════════════════════════════════ */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+  const form          = $("#orderForm");
+  const formView      = $("#formView");
+  const confirmView   = $("#confirmView");
+  const submitBtn     = $("#submitBtn");
+
+  /* ── Helpers to get current radio / checkbox values ── */
+  const radioVal = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ""; };
+  const checkedVals = (name) => $$(`input[name="${name}"]:checked`).map(el => el.value);
+
+  /* ══════════════════════════════════════
+     Conditional field visibility
+     ══════════════════════════════════════ */
+  function toggleDelivery() {
+    const isDelivery = radioVal("orderType") === "Delivery";
+    $("#deliveryFields").classList.toggle("hidden", !isDelivery);
+    updateSummary();
+    runValidation();
+  }
+
+  function togglePayment() {
+    const method = radioVal("payment");
+    $("#cardFields").classList.toggle("hidden", method !== "Card");
+    $("#cashMsg").classList.toggle("hidden", method !== "Cash");
+    runValidation();
+  }
+
+  /* Listen for order type and payment changes */
+  $$('input[name="orderType"]').forEach(r => r.addEventListener("change", toggleDelivery));
+  $$('input[name="payment"]').forEach(r => r.addEventListener("change", togglePayment));
+
+  /* ══════════════════════════════════════
+     Pricing calculation
+     ══════════════════════════════════════ */
+  function calcPrices() {
+    const size   = radioVal("size");
+    const crust  = radioVal("crust");
+    const sauce  = radioVal("sauce");
+    const cheese = radioVal("cheese");
+    const toppings = checkedVals("topping");
+    const extras   = checkedVals("extra");
+    const qty      = Math.max(1, Math.min(10, parseInt($("#qty").value) || 1));
+    const isDelivery = radioVal("orderType") === "Delivery";
+
+    /* Single pizza price */
+    let pizzaUnit = (PRICES.size[size] || 0)
+                  + (PRICES.crust[crust] || 0)
+                  + (PRICES.sauce[sauce] || 0)
+                  + (PRICES.cheese[cheese] || 0)
+                  + toppings.length * PRICES.topping;
+
+    const pizzaLine = pizzaUnit * qty;
+
+    /* Extras total */
+    let extrasTotal = 0;
+    extras.forEach(e => { extrasTotal += PRICES.extras[e] || 0; });
+
+    const deliveryFee = isDelivery ? PRICES.delivery : 0;
+    const subtotal    = pizzaLine + extrasTotal;
+    const taxable     = subtotal + deliveryFee;
+    const tax         = taxable * PRICES.taxRate;
+    const grandTotal  = taxable + tax;
+
+    return { pizzaUnit, pizzaLine, extrasTotal, deliveryFee, subtotal, tax, grandTotal, qty };
+  }
+
+  /* ══════════════════════════════════════
+     Live summary rendering
+     ══════════════════════════════════════ */
+  function updateSummary() {
+    const name      = $("#custName").value.trim() || "\u2014";
+    const orderType = radioVal("orderType") || "\u2014";
+    const size      = radioVal("size");
+    const crust     = radioVal("crust");
+    const sauce     = radioVal("sauce");
+    const cheese    = radioVal("cheese");
+    const toppings  = checkedVals("topping");
+    const extras    = checkedVals("extra");
+    const qty       = Math.max(1, Math.min(10, parseInt($("#qty").value) || 1));
+
+    $("#sumName").textContent      = name;
+    $("#sumOrderType").textContent  = orderType;
+
+    /* Pizza config */
+    const parts = [size, crust, sauce, cheese ? cheese + " cheese" : ""].filter(Boolean);
+    $("#sumPizza").textContent   = parts.length ? parts.join(" / ") : "\u2014";
+    $("#sumToppings").textContent = toppings.length ? "Toppings: " + toppings.join(", ") : "Toppings: None";
+    $("#sumQty").textContent     = "Qty: " + qty;
+
+    /* Extras */
+    $("#sumExtras").textContent = extras.length ? extras.join(", ") : "None";
+
+    /* Prices */
+    const p = calcPrices();
+    const fmt = (n) => "$" + n.toFixed(2);
+
+    $("#sumSubtotal").textContent = fmt(p.subtotal);
+    const delRow = $("#sumDeliveryRow");
+    if (radioVal("orderType") === "Delivery") {
+      delRow.style.display = "";
+      $("#sumDelivery").textContent = fmt(p.deliveryFee);
+    } else {
+      delRow.style.display = "none";
+    }
+    $("#sumTax").textContent   = fmt(p.tax);
+    $("#sumTotal").textContent = fmt(p.grandTotal);
+  }
+
+  /* Attach live-update listeners to every interactive element */
+  form.addEventListener("input", updateSummary);
+  form.addEventListener("change", updateSummary);
+
+  /* Character counter for special instructions */
+  $("#instructions").addEventListener("input", function () {
+    $("#charCount").textContent = this.value.length;
+  });
+
+  /* ══════════════════════════════════════
+     Validation
+     ══════════════════════════════════════ */
+  /** Show / clear an error message; returns true if valid */
+  function setError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg || "";
+    return !msg;
+  }
+
+  function markField(input, valid) {
+    if (input) input.classList.toggle("invalid", !valid);
+  }
+
+  /** Master validation — returns true if entire form is valid */
+  function validate(showErrors) {
+    let ok = true;
+
+    /* Helper: validate a single text input */
+    const reqText = (inputId, errId, label) => {
+      const el = $("#" + inputId);
+      const v = el.value.trim();
+      const valid = v.length > 0;
+      if (showErrors) { setError(errId, valid ? "" : label + " is required"); markField(el, valid); }
+      if (!valid) ok = false;
+    };
+
+    /* Customer */
+    reqText("custName", "errCustName", "Full name");
+
+    // Email: required + format
+    const emailEl = $("#custEmail");
+    const emailVal = emailEl.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailValid = emailVal.length > 0 && emailRegex.test(emailVal);
+    if (showErrors) {
+      setError("errCustEmail", emailVal.length === 0 ? "Email is required" : (!emailRegex.test(emailVal) ? "Enter a valid email" : ""));
+      markField(emailEl, emailValid);
+    }
+    if (!emailValid) ok = false;
+
+    /* Order type */
+    const orderType = radioVal("orderType");
+    if (showErrors) setError("errOrderType", orderType ? "" : "Select an order type");
+    if (!orderType) ok = false;
+
+    /* Delivery address */
+    if (orderType === "Delivery") {
+      reqText("street", "errStreet", "Street");
+      reqText("city", "errCity", "City");
+      reqText("state", "errState", "State/Region");
+      reqText("postal", "errPostal", "Postal code");
+    } else {
+      /* Clear delivery errors when not needed */
+      if (showErrors) {
+        ["errStreet","errCity","errState","errPostal"].forEach(id => setError(id, ""));
+        ["street","city","state","postal"].forEach(id => markField($("#" + id), true));
+      }
+    }
+
+    /* Pizza builder */
+    if (showErrors) setError("errSize", radioVal("size") ? "" : "Select a size");
+    if (!radioVal("size")) ok = false;
+    if (showErrors) setError("errCrust", radioVal("crust") ? "" : "Select a crust");
+    if (!radioVal("crust")) ok = false;
+    if (showErrors) setError("errSauce", radioVal("sauce") ? "" : "Select a sauce");
+    if (!radioVal("sauce")) ok = false;
+    if (showErrors) setError("errCheese", radioVal("cheese") ? "" : "Select cheese level");
+    if (!radioVal("cheese")) ok = false;
+
+    /* Quantity */
+    const qtyEl = $("#qty");
+    const qtyV = parseInt(qtyEl.value);
+    const qtyOk = Number.isInteger(qtyV) && qtyV >= 1 && qtyV <= 10;
+    if (showErrors) { setError("errQty", qtyOk ? "" : "Enter 1–10"); markField(qtyEl, qtyOk); }
+    if (!qtyOk) ok = false;
+
+    /* Payment */
+    const payMethod = radioVal("payment");
+    if (showErrors) setError("errPayment", payMethod ? "" : "Select a payment method");
+    if (!payMethod) ok = false;
+
+    if (payMethod === "Card") {
+      reqText("cardName", "errCardName", "Name on card");
+
+      /* Card number: strip spaces/dashes, check 13-19 digits */
+      const cnEl = $("#cardNumber");
+      const cnRaw = cnEl.value.replace(/[\s-]/g, "");
+      const cnOk = /^\d{13,19}$/.test(cnRaw);
+      if (showErrors) { setError("errCardNumber", cnOk ? "" : "Enter a valid card number (13–19 digits)"); markField(cnEl, cnOk); }
+      if (!cnOk) ok = false;
+
+      /* Expiration MM/YY */
+      const expEl = $("#cardExp");
+      const expMatch = expEl.value.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+      let expOk = false;
+      if (expMatch) {
+        const m = parseInt(expMatch[1], 10);
+        const y = parseInt(expMatch[2], 10) + 2000;
+        const now = new Date();
+        const expDate = new Date(y, m); // first of next month
+        expOk = expDate > now;
+      }
+      if (showErrors) { setError("errCardExp", expOk ? "" : "Enter a valid future MM/YY"); markField(expEl, expOk); }
+      if (!expOk) ok = false;
+
+      /* CVV */
+      const cvvEl = $("#cardCvv");
+      const cvvOk = /^\d{3,4}$/.test(cvvEl.value);
+      if (showErrors) { setError("errCardCvv", cvvOk ? "" : "3–4 digits"); markField(cvvEl, cvvOk); }
+      if (!cvvOk) ok = false;
+    } else {
+      /* Clear card errors when not Card */
+      if (showErrors) {
+        ["errCardName","errCardNumber","errCardExp","errCardCvv"].forEach(id => setError(id, ""));
+        ["cardName","cardNumber","cardExp","cardCvv"].forEach(id => markField($("#" + id), true));
+      }
+    }
+
+    return ok;
+  }
+
+  /** Run validation silently to toggle submit button; show errors only after first submit attempt */
+  let hasAttemptedSubmit = false;
+
+  function runValidation() {
+    const valid = validate(hasAttemptedSubmit);
+    submitBtn.disabled = !valid;
+  }
+
+  /* Validate on every input/change */
+  form.addEventListener("input", runValidation);
+  form.addEventListener("change", runValidation);
+
+  /* ══════════════════════════════════════
+     Submit handler
+     ══════════════════════════════════════ */
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    hasAttemptedSubmit = true;
+    if (!validate(true)) { runValidation(); return; }
+
+    /* Build confirmation data */
+    const orderNum = String(Math.floor(100000 + Math.random() * 900000));
+    const timestamp = new Date().toLocaleString();
+
+    const p = calcPrices();
+    const fmt = (n) => "$" + n.toFixed(2);
+
+    const size      = radioVal("size");
+    const crust     = radioVal("crust");
+    const sauce     = radioVal("sauce");
+    const cheese    = radioVal("cheese");
+    const toppings  = checkedVals("topping");
+    const extras    = checkedVals("extra");
+    const orderType = radioVal("orderType");
+    const payment   = radioVal("payment");
+
+    let html = `<h3>Customer</h3>`;
+    html += `<div class="conf-row"><span>${$("#custName").value.trim()}</span><span>${$("#custEmail").value.trim()}</span></div>`;
+    if ($("#custPhone").value.trim()) html += `<div class="conf-row"><span>Phone: ${$("#custPhone").value.trim()}</span></div>`;
+    html += `<div class="conf-row"><span>Order Type: ${orderType}</span></div>`;
+    if (orderType === "Delivery") {
+      html += `<div class="conf-row"><span>${$("#street").value.trim()}, ${$("#city").value.trim()}, ${$("#state").value.trim()} ${$("#postal").value.trim()}</span></div>`;
+    }
+
+    html += `<h3>Pizza</h3>`;
+    html += `<div class="conf-row"><span>${size} / ${crust} / ${sauce} / ${cheese} cheese</span></div>`;
+    html += `<div class="conf-row"><span>Toppings: ${toppings.length ? toppings.join(", ") : "None"}</span></div>`;
+    html += `<div class="conf-row"><span>Qty: ${p.qty}</span></div>`;
+
+    if (extras.length) {
+      html += `<h3>Extras</h3>`;
+      html += `<div class="conf-row"><span>${extras.join(", ")}</span></div>`;
+    }
+
+    if ($("#instructions").value.trim()) {
+      html += `<h3>Special Instructions</h3>`;
+      html += `<div class="conf-row"><span>${$("#instructions").value.trim()}</span></div>`;
+    }
+
+    html += `<h3>Payment</h3>`;
+    html += `<div class="conf-row"><span>${payment}</span></div>`;
+
+    html += `<h3>Pricing</h3>`;
+    html += `<div class="conf-row"><span>Subtotal</span><span>${fmt(p.subtotal)}</span></div>`;
+    if (orderType === "Delivery") html += `<div class="conf-row"><span>Delivery Fee</span><span>${fmt(p.deliveryFee)}</span></div>`;
+    html += `<div class="conf-row"><span>Tax (8.5%)</span><span>${fmt(p.tax)}</span></div>`;
+    html += `<div class="conf-row total"><span>Grand Total</span><span>${fmt(p.grandTotal)}</span></div>`;
+
+    $("#confOrderNum").textContent  = "#" + orderNum;
+    $("#confTimestamp").textContent = timestamp;
+    $("#confDetails").innerHTML     = html;
+
+    formView.classList.add("hidden");
+    confirmView.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* ══════════════════════════════════════
+     New Order reset
+     ══════════════════════════════════════ */
+  $("#newOrderBtn").addEventListener("click", function () {
+    form.reset();
+    hasAttemptedSubmit = false;
+    submitBtn.disabled = true;
+
+    /* Hide conditional sections */
+    $("#deliveryFields").classList.add("hidden");
+    $("#cardFields").classList.add("hidden");
+    $("#cashMsg").classList.add("hidden");
+
+    /* Clear all error messages & invalid classes */
+    $$(".error-msg").forEach(el => el.textContent = "");
+    $$(".invalid").forEach(el => el.classList.remove("invalid"));
+    $("#charCount").textContent = "0";
+
+    /* Reset summary */
+    updateSummary();
+
+    confirmView.classList.add("hidden");
+    formView.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* Initial summary render */
+  updateSummary();
+})();
+</script>
+</body>
+</html>

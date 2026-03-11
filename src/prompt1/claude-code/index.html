@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza Order</title>
+  <style>
+    /* ── Reset & Base ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5; color: #222; line-height: 1.5;
+    }
+    header {
+      background: #c0392b; color: #fff; padding: 1rem 1.5rem; text-align: center;
+    }
+    header h1 { font-size: 1.6rem; }
+    .container {
+      max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem;
+      display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;
+    }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ──────────────────────────────────────────── */
+    .card {
+      background: #fff; border-radius: 8px; padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.15rem; margin-bottom: .85rem; padding-bottom: .4rem;
+      border-bottom: 2px solid #e74c3c;
+    }
+
+    /* ── Form elements ─────────────────────────────────── */
+    label { display: block; font-weight: 600; margin-bottom: .2rem; font-size: .9rem; }
+    .field { margin-bottom: .85rem; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"],
+    select, textarea {
+      width: 100%; padding: .5rem .6rem; border: 1px solid #ccc; border-radius: 4px;
+      font-size: .95rem; transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #3498db; outline: none; }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: .6rem .9rem; }
+    .radio-group label, .checkbox-group label { font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: .3rem; }
+
+    .error-msg {
+      color: #c0392b; font-size: .8rem; margin-top: .15rem; min-height: 1.1em;
+    }
+    .input-error { border-color: #c0392b !important; }
+
+    .char-count { font-size: .8rem; color: #777; text-align: right; }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      display: inline-block; padding: .65rem 1.6rem; border: none; border-radius: 4px;
+      font-size: 1rem; font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .btn-primary { background: #27ae60; color: #fff; }
+    .btn-primary:hover { background: #219a52; }
+    .btn-secondary { background: #3498db; color: #fff; }
+    .btn-secondary:hover { background: #2980b9; }
+
+    /* ── Summary panel ─────────────────────────────────── */
+    .summary-panel { position: sticky; top: 1rem; }
+    .summary-panel .card { border-top: 4px solid #e74c3c; }
+    .summary-panel h2 { border-bottom-color: #e74c3c; }
+    .summary-row {
+      display: flex; justify-content: space-between; padding: .2rem 0;
+      font-size: .9rem;
+    }
+    .summary-row.total {
+      font-weight: 700; font-size: 1.05rem; border-top: 2px solid #333;
+      margin-top: .4rem; padding-top: .4rem;
+    }
+    .summary-section { margin-bottom: .6rem; }
+    .summary-section strong { font-size: .85rem; color: #555; text-transform: uppercase; }
+    .summary-detail { font-size: .88rem; color: #333; padding-left: .25rem; }
+
+    /* ── Address grid ──────────────────────────────────── */
+    .address-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .75rem; }
+    @media (max-width: 500px) { .address-grid { grid-template-columns: 1fr; } }
+
+    /* ── Confirmation ──────────────────────────────────── */
+    .confirmation { text-align: center; }
+    .confirmation .card { text-align: left; max-width: 600px; margin: 0 auto 1.25rem; }
+    .confirmation h2 { color: #27ae60; border-bottom-color: #27ae60; }
+    .order-number { font-size: 1.5rem; font-weight: 700; color: #e74c3c; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Pizza Palace — Order Online</h1>
+</header>
+
+<!-- ════════════════ ORDER FORM ════════════════ -->
+<div class="container" id="formView">
+  <main>
+    <!-- 1. Customer Info -->
+    <section class="card">
+      <h2>Customer Information</h2>
+      <div class="field">
+        <label for="custName">Full Name *</label>
+        <input type="text" id="custName" required>
+        <div class="error-msg" id="errCustName"></div>
+      </div>
+      <div class="field">
+        <label for="custEmail">Email *</label>
+        <input type="email" id="custEmail" required>
+        <div class="error-msg" id="errCustEmail"></div>
+      </div>
+      <div class="field">
+        <label for="custPhone">Phone</label>
+        <input type="tel" id="custPhone">
+      </div>
+      <div class="field">
+        <label>Order Type *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="orderType" value="Pickup"> Pickup</label>
+          <label><input type="radio" name="orderType" value="Delivery"> Delivery</label>
+        </div>
+        <div class="error-msg" id="errOrderType"></div>
+      </div>
+      <!-- Delivery address (hidden by default) -->
+      <div id="deliveryFields" class="hidden">
+        <div class="address-grid">
+          <div class="field">
+            <label for="addrStreet">Street *</label>
+            <input type="text" id="addrStreet">
+            <div class="error-msg" id="errStreet"></div>
+          </div>
+          <div class="field">
+            <label for="addrCity">City *</label>
+            <input type="text" id="addrCity">
+            <div class="error-msg" id="errCity"></div>
+          </div>
+          <div class="field">
+            <label for="addrState">State/Region *</label>
+            <input type="text" id="addrState">
+            <div class="error-msg" id="errState"></div>
+          </div>
+          <div class="field">
+            <label for="addrPostal">Postal Code *</label>
+            <input type="text" id="addrPostal">
+            <div class="error-msg" id="errPostal"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Pizza Builder -->
+    <section class="card">
+      <h2>Build Your Pizza</h2>
+      <div class="field">
+        <label for="pizzaSize">Size *</label>
+        <select id="pizzaSize">
+          <option value="">— Choose —</option>
+          <option value="Small">Small — $10.00</option>
+          <option value="Medium">Medium — $12.00</option>
+          <option value="Large">Large — $14.00</option>
+        </select>
+        <div class="error-msg" id="errSize"></div>
+      </div>
+      <div class="field">
+        <label for="pizzaCrust">Crust *</label>
+        <select id="pizzaCrust">
+          <option value="">— Choose —</option>
+          <option value="Thin">Thin</option>
+          <option value="Hand-tossed">Hand-tossed</option>
+          <option value="Deep dish">Deep dish</option>
+          <option value="Gluten-free">Gluten-free (+$2.00)</option>
+        </select>
+        <div class="error-msg" id="errCrust"></div>
+      </div>
+      <div class="field">
+        <label for="pizzaSauce">Sauce *</label>
+        <select id="pizzaSauce">
+          <option value="">— Choose —</option>
+          <option value="Tomato">Tomato</option>
+          <option value="Alfredo">Alfredo (+$1.00)</option>
+          <option value="Pesto">Pesto (+$1.50)</option>
+        </select>
+        <div class="error-msg" id="errSauce"></div>
+      </div>
+      <div class="field">
+        <label for="pizzaCheese">Cheese Level *</label>
+        <select id="pizzaCheese">
+          <option value="">— Choose —</option>
+          <option value="Light">Light</option>
+          <option value="Normal">Normal</option>
+          <option value="Extra">Extra (+$1.00)</option>
+        </select>
+        <div class="error-msg" id="errCheese"></div>
+      </div>
+      <div class="field">
+        <label>Toppings</label>
+        <div class="checkbox-group" id="toppingsGroup">
+          <label><input type="checkbox" name="topping" value="Pepperoni"> Pepperoni</label>
+          <label><input type="checkbox" name="topping" value="Sausage"> Sausage</label>
+          <label><input type="checkbox" name="topping" value="Mushrooms"> Mushrooms</label>
+          <label><input type="checkbox" name="topping" value="Onions"> Onions</label>
+          <label><input type="checkbox" name="topping" value="Green peppers"> Green peppers</label>
+          <label><input type="checkbox" name="topping" value="Olives"> Olives</label>
+          <label><input type="checkbox" name="topping" value="Pineapple"> Pineapple</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pizzaQty">Quantity *</label>
+        <input type="number" id="pizzaQty" min="1" max="10" value="1">
+        <div class="error-msg" id="errQty"></div>
+      </div>
+    </section>
+
+    <!-- 3. Extras -->
+    <section class="card">
+      <h2>Extras</h2>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="extra" value="Breadsticks" data-price="4.00"> Breadsticks ($4.00)</label>
+        <label><input type="checkbox" name="extra" value="Soda" data-price="2.00"> Soda ($2.00)</label>
+        <label><input type="checkbox" name="extra" value="Salad" data-price="5.00"> Salad ($5.00)</label>
+      </div>
+    </section>
+
+    <!-- 4. Special Instructions -->
+    <section class="card">
+      <h2>Special Instructions</h2>
+      <div class="field">
+        <textarea id="specialInstr" maxlength="200" placeholder="Any special requests…"></textarea>
+        <div class="char-count"><span id="charCount">0</span>/200</div>
+      </div>
+    </section>
+
+    <!-- 5. Payment -->
+    <section class="card">
+      <h2>Payment</h2>
+      <div class="field">
+        <label>Payment Method *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="payMethod" value="Card"> Credit / Debit Card</label>
+          <label><input type="radio" name="payMethod" value="Cash"> Cash</label>
+        </div>
+        <div class="error-msg" id="errPayMethod"></div>
+      </div>
+      <div id="cardFields" class="hidden">
+        <div class="field">
+          <label for="cardName">Name on Card *</label>
+          <input type="text" id="cardName">
+          <div class="error-msg" id="errCardName"></div>
+        </div>
+        <div class="field">
+          <label for="cardNumber">Card Number *</label>
+          <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="23">
+          <div class="error-msg" id="errCardNumber"></div>
+        </div>
+        <div class="address-grid">
+          <div class="field">
+            <label for="cardExpiry">Expiration (MM/YY) *</label>
+            <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+            <div class="error-msg" id="errCardExpiry"></div>
+          </div>
+          <div class="field">
+            <label for="cardCVV">CVV *</label>
+            <input type="text" id="cardCVV" placeholder="123" maxlength="4">
+            <div class="error-msg" id="errCardCVV"></div>
+          </div>
+        </div>
+      </div>
+      <div id="cashMsg" class="hidden" style="padding:.5rem;background:#eafaf1;border-radius:4px;font-size:.9rem;">
+        Cash on delivery/pickup — pay when you receive your order.
+      </div>
+    </section>
+
+    <button class="btn btn-primary" id="submitBtn" style="width:100%;margin-bottom:1.5rem;">Place Order</button>
+  </main>
+
+  <!-- ── Live Summary Panel ──────────────────────────── -->
+  <aside class="summary-panel">
+    <div class="card">
+      <h2>Order Summary</h2>
+      <div id="summaryContent">
+        <div class="summary-section">
+          <strong>Customer</strong>
+          <div class="summary-detail" id="sumName">—</div>
+          <div class="summary-detail" id="sumType">—</div>
+        </div>
+        <div class="summary-section">
+          <strong>Pizza</strong>
+          <div class="summary-detail" id="sumPizza">—</div>
+          <div class="summary-detail" id="sumToppings">None</div>
+          <div class="summary-detail" id="sumQty">Qty: 1</div>
+        </div>
+        <div class="summary-section">
+          <strong>Extras</strong>
+          <div class="summary-detail" id="sumExtras">None</div>
+        </div>
+        <hr style="margin:.6rem 0;">
+        <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">$0.00</span></div>
+        <div class="summary-row hidden" id="sumDeliveryRow"><span>Delivery Fee</span><span id="sumDelivery">$0.00</span></div>
+        <div class="summary-row"><span>Tax (8.5%)</span><span id="sumTax">$0.00</span></div>
+        <div class="summary-row total"><span>Grand Total</span><span id="sumTotal">$0.00</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ════════════════ CONFIRMATION VIEW ════════════════ -->
+<div class="container hidden" id="confirmView">
+  <div class="confirmation" id="confirmContent"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── Pricing constants ──────────────────────────────── */
+  const PRICES = {
+    size:  { Small: 10, Medium: 12, Large: 14 },
+    crust: { "Gluten-free": 2 },
+    sauce: { Alfredo: 1, Pesto: 1.5 },
+    cheese:{ Extra: 1 },
+    topping: 0.75,
+    extras: { Breadsticks: 4, Soda: 2, Salad: 5 },
+    delivery: 3,
+    taxRate: 0.085,
+  };
+
+  /* ── DOM helpers ─────────────────────────────────────── */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => [...document.querySelectorAll(sel)];
+  const fmt = (n) => "$" + n.toFixed(2);
+
+  /* ── Gather current form state ──────────────────────── */
+  function gatherState() {
+    const orderType = (document.querySelector('input[name="orderType"]:checked') || {}).value || "";
+    const payMethod = (document.querySelector('input[name="payMethod"]:checked') || {}).value || "";
+    return {
+      name: $("#custName").value.trim(),
+      email: $("#custEmail").value.trim(),
+      phone: $("#custPhone").value.trim(),
+      orderType,
+      address: {
+        street: $("#addrStreet").value.trim(),
+        city:   $("#addrCity").value.trim(),
+        state:  $("#addrState").value.trim(),
+        postal: $("#addrPostal").value.trim(),
+      },
+      size:    $("#pizzaSize").value,
+      crust:   $("#pizzaCrust").value,
+      sauce:   $("#pizzaSauce").value,
+      cheese:  $("#pizzaCheese").value,
+      toppings: $$('input[name="topping"]:checked').map((c) => c.value),
+      qty:     parseInt($("#pizzaQty").value, 10) || 1,
+      extras:  $$('input[name="extra"]:checked').map((c) => c.value),
+      instructions: $("#specialInstr").value,
+      payMethod,
+      card: {
+        name:   $("#cardName").value.trim(),
+        number: $("#cardNumber").value.trim(),
+        expiry: $("#cardExpiry").value.trim(),
+        cvv:    $("#cardCVV").value.trim(),
+      },
+    };
+  }
+
+  /* ── Pricing calculation ────────────────────────────── */
+  function calcPricing(s) {
+    const base      = PRICES.size[s.size] || 0;
+    const crustAdd  = PRICES.crust[s.crust] || 0;
+    const sauceAdd  = PRICES.sauce[s.sauce] || 0;
+    const cheeseAdd = PRICES.cheese[s.cheese] || 0;
+    const toppingsAdd = s.toppings.length * PRICES.topping;
+    const pizzaUnit = base + crustAdd + sauceAdd + cheeseAdd + toppingsAdd;
+    const pizzaLine = pizzaUnit * s.qty;
+    const extrasTotal = s.extras.reduce((a, e) => a + (PRICES.extras[e] || 0), 0);
+    const subtotal  = pizzaLine + extrasTotal;
+    const delivery  = s.orderType === "Delivery" ? PRICES.delivery : 0;
+    const taxable   = subtotal + delivery;
+    const tax       = taxable * PRICES.taxRate;
+    const total     = taxable + tax;
+    return { pizzaUnit, pizzaLine, extrasTotal, subtotal, delivery, tax, total };
+  }
+
+  /* ── Update live summary panel ──────────────────────── */
+  function updateSummary() {
+    const s = gatherState();
+    const p = calcPricing(s);
+
+    $("#sumName").textContent = s.name || "—";
+    $("#sumType").textContent = s.orderType || "—";
+
+    const pizzaParts = [s.size, s.crust, s.sauce, s.cheese ? s.cheese + " cheese" : ""].filter(Boolean);
+    $("#sumPizza").textContent = pizzaParts.length ? pizzaParts.join(" / ") : "—";
+    $("#sumToppings").textContent = s.toppings.length ? s.toppings.join(", ") : "None";
+    $("#sumQty").textContent = "Qty: " + s.qty;
+    $("#sumExtras").textContent = s.extras.length ? s.extras.join(", ") : "None";
+
+    $("#sumSubtotal").textContent = fmt(p.subtotal);
+    const deliveryRow = $("#sumDeliveryRow");
+    if (s.orderType === "Delivery") {
+      deliveryRow.classList.remove("hidden");
+      $("#sumDelivery").textContent = fmt(p.delivery);
+    } else {
+      deliveryRow.classList.add("hidden");
+    }
+    $("#sumTax").textContent = fmt(p.tax);
+    $("#sumTotal").textContent = fmt(p.total);
+  }
+
+  /* ── Conditional field visibility ───────────────────── */
+  function bindConditional() {
+    $$('input[name="orderType"]').forEach((r) =>
+      r.addEventListener("change", () => {
+        $("#deliveryFields").classList.toggle("hidden", r.value !== "Delivery");
+        updateSummary();
+      })
+    );
+    $$('input[name="payMethod"]').forEach((r) =>
+      r.addEventListener("change", () => {
+        $("#cardFields").classList.toggle("hidden", r.value !== "Card");
+        $("#cashMsg").classList.toggle("hidden", r.value !== "Cash");
+      })
+    );
+  }
+
+  /* ── Character counter for special instructions ─────── */
+  function bindCharCounter() {
+    $("#specialInstr").addEventListener("input", () => {
+      $("#charCount").textContent = $("#specialInstr").value.length;
+    });
+  }
+
+  /* ── Attach live-update listeners to every input ────── */
+  function bindLiveUpdate() {
+    const inputs = $$(
+      '#formView input, #formView select, #formView textarea'
+    );
+    inputs.forEach((el) => {
+      el.addEventListener("input", updateSummary);
+      el.addEventListener("change", updateSummary);
+    });
+  }
+
+  /* ── Inline validation helpers ──────────────────────── */
+  function setErr(id, msg) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg;
+  }
+  function markField(input, errId, msg) {
+    if (msg) {
+      input.classList.add("input-error");
+      setErr(errId, msg);
+      return false;
+    }
+    input.classList.remove("input-error");
+    setErr(errId, "");
+    return true;
+  }
+
+  function validateAll() {
+    const s = gatherState();
+    let ok = true;
+
+    /* Customer info */
+    if (!markField($("#custName"), "errCustName", s.name ? "" : "Name is required.")) ok = false;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!markField($("#custEmail"), "errCustEmail", !s.email ? "Email is required." : !emailRe.test(s.email) ? "Enter a valid email." : "")) ok = false;
+
+    if (!s.orderType) { setErr("errOrderType", "Choose pickup or delivery."); ok = false; } else { setErr("errOrderType", ""); }
+    if (s.orderType === "Delivery") {
+      if (!markField($("#addrStreet"), "errStreet", s.address.street ? "" : "Street is required.")) ok = false;
+      if (!markField($("#addrCity"),   "errCity",   s.address.city   ? "" : "City is required."))   ok = false;
+      if (!markField($("#addrState"),  "errState",  s.address.state  ? "" : "State is required."))  ok = false;
+      if (!markField($("#addrPostal"), "errPostal", s.address.postal ? "" : "Postal code is required.")) ok = false;
+    }
+
+    /* Pizza builder */
+    if (!markField($("#pizzaSize"),   "errSize",   s.size   ? "" : "Select a size."))   ok = false;
+    if (!markField($("#pizzaCrust"),  "errCrust",  s.crust  ? "" : "Select a crust."))  ok = false;
+    if (!markField($("#pizzaSauce"),  "errSauce",  s.sauce  ? "" : "Select a sauce."))  ok = false;
+    if (!markField($("#pizzaCheese"), "errCheese", s.cheese ? "" : "Select cheese level.")) ok = false;
+
+    const qty = parseInt($("#pizzaQty").value, 10);
+    if (!markField($("#pizzaQty"), "errQty", isNaN(qty) || qty < 1 || qty > 10 ? "Enter 1–10." : "")) ok = false;
+
+    /* Payment */
+    if (!s.payMethod) { setErr("errPayMethod", "Choose a payment method."); ok = false; } else { setErr("errPayMethod", ""); }
+    if (s.payMethod === "Card") {
+      if (!markField($("#cardName"), "errCardName", s.card.name ? "" : "Name on card is required.")) ok = false;
+
+      const digits = s.card.number.replace(/[\s\-]/g, "");
+      if (!markField($("#cardNumber"), "errCardNumber",
+        !s.card.number ? "Card number is required." :
+        !/^\d+$/.test(digits) ? "Digits only (spaces/dashes allowed)." :
+        digits.length < 13 || digits.length > 19 ? "Must be 13–19 digits." : "")) ok = false;
+
+      /* Expiry MM/YY */
+      const expMatch = s.card.expiry.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+      let expiryMsg = "";
+      if (!s.card.expiry) { expiryMsg = "Expiry is required."; }
+      else if (!expMatch) { expiryMsg = "Use MM/YY format."; }
+      else {
+        const now = new Date();
+        const expMonth = parseInt(expMatch[1], 10);
+        const expYear  = 2000 + parseInt(expMatch[2], 10);
+        if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+          expiryMsg = "Card is expired.";
+        }
+      }
+      if (!markField($("#cardExpiry"), "errCardExpiry", expiryMsg)) ok = false;
+
+      if (!markField($("#cardCVV"), "errCardCVV",
+        !s.card.cvv ? "CVV is required." :
+        !/^\d{3,4}$/.test(s.card.cvv) ? "3–4 digits." : "")) ok = false;
+    }
+
+    return ok;
+  }
+
+  /* ── Build confirmation view ────────────────────────── */
+  function showConfirmation() {
+    const s = gatherState();
+    const p = calcPricing(s);
+    const orderNum = String(Math.floor(100000 + Math.random() * 900000));
+    const ts = new Date().toLocaleString();
+
+    const toppingsList = s.toppings.length ? s.toppings.join(", ") : "None";
+    const extrasList   = s.extras.length   ? s.extras.join(", ")   : "None";
+    const addrHTML = s.orderType === "Delivery"
+      ? `<p>${s.address.street}, ${s.address.city}, ${s.address.state} ${s.address.postal}</p>` : "";
+
+    const html = `
+      <div class="card">
+        <h2>Order Confirmed!</h2>
+        <p>Thank you, <strong>${esc(s.name)}</strong>!</p>
+        <p class="order-number">#${orderNum}</p>
+        <p style="color:#777;font-size:.85rem;">${ts}</p>
+      </div>
+      <div class="card">
+        <h2>Order Details</h2>
+        <p><strong>Order Type:</strong> ${s.orderType}</p>
+        ${addrHTML}
+        <p><strong>Email:</strong> ${esc(s.email)}</p>
+        ${s.phone ? `<p><strong>Phone:</strong> ${esc(s.phone)}</p>` : ""}
+        <hr style="margin:.6rem 0;">
+        <p><strong>Pizza:</strong> ${s.size} / ${s.crust} / ${s.sauce} / ${s.cheese} cheese</p>
+        <p><strong>Toppings:</strong> ${toppingsList}</p>
+        <p><strong>Quantity:</strong> ${s.qty}</p>
+        <p><strong>Extras:</strong> ${extrasList}</p>
+        ${s.instructions ? `<p><strong>Instructions:</strong> ${esc(s.instructions)}</p>` : ""}
+        <hr style="margin:.6rem 0;">
+        <div class="summary-row"><span>Subtotal</span><span>${fmt(p.subtotal)}</span></div>
+        ${s.orderType === "Delivery" ? `<div class="summary-row"><span>Delivery Fee</span><span>${fmt(p.delivery)}</span></div>` : ""}
+        <div class="summary-row"><span>Tax (8.5%)</span><span>${fmt(p.tax)}</span></div>
+        <div class="summary-row total"><span>Grand Total</span><span>${fmt(p.total)}</span></div>
+        <hr style="margin:.6rem 0;">
+        <p><strong>Payment:</strong> ${s.payMethod === "Card" ? "Card ending " + s.card.number.replace(/[\s\-]/g, "").slice(-4) : "Cash"}</p>
+      </div>
+      <button class="btn btn-secondary" id="newOrderBtn">Start New Order</button>
+    `;
+
+    $("#confirmContent").innerHTML = html;
+    $("#formView").classList.add("hidden");
+    $("#confirmView").classList.remove("hidden");
+
+    document.getElementById("newOrderBtn").addEventListener("click", resetForm);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* Minimal HTML escape for user-supplied text */
+  function esc(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* ── Reset form ─────────────────────────────────────── */
+  function resetForm() {
+    /* Clear all inputs */
+    $$('#formView input[type="text"], #formView input[type="email"], #formView input[type="tel"], #formView input[type="number"]').forEach((i) => { i.value = ""; i.classList.remove("input-error"); });
+    $$('#formView select').forEach((s) => { s.selectedIndex = 0; s.classList.remove("input-error"); });
+    $$('#formView input[type="radio"], #formView input[type="checkbox"]').forEach((i) => { i.checked = false; });
+    $("#specialInstr").value = "";
+    $("#charCount").textContent = "0";
+    $("#pizzaQty").value = "1";
+
+    /* Hide conditional sections */
+    $("#deliveryFields").classList.add("hidden");
+    $("#cardFields").classList.add("hidden");
+    $("#cashMsg").classList.add("hidden");
+
+    /* Clear error messages */
+    $$('.error-msg').forEach((e) => { e.textContent = ""; });
+
+    /* Toggle views */
+    $("#confirmView").classList.add("hidden");
+    $("#formView").classList.remove("hidden");
+
+    updateSummary();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ── Submit handler ─────────────────────────────────── */
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (validateAll()) {
+      showConfirmation();
+    } else {
+      /* Scroll to first error */
+      const first = document.querySelector(".input-error, .error-msg:not(:empty)");
+      if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /* ── Init ────────────────────────────────────────────── */
+  function init() {
+    bindConditional();
+    bindCharCounter();
+    bindLiveUpdate();
+    $("#submitBtn").addEventListener("click", handleSubmit);
+    updateSummary();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

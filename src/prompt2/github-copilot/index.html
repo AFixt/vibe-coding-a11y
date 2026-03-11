@@ -1,0 +1,1369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizza Ordering Form</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111a2e;
+      --panel2:#0f1730;
+      --text:#f2f5ff;
+      --muted:#c9d2f3;
+      --border:#2a3a66;
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --danger:#ff5c7a;
+      --ok:#34d399;
+      --focus:#ffd166;
+
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% -20%, rgba(125,211,252,.18), transparent 60%),
+                  radial-gradient(900px 500px at 120% 0%, rgba(167,139,250,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.4;
+    }
+
+    a{ color:var(--accent); }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    header{
+      padding: 22px 16px 10px;
+      max-width: 1100px;
+      margin:0 auto;
+    }
+    header h1{
+      margin:0 0 6px;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+      letter-spacing:.2px;
+    }
+    header p{
+      margin:0;
+      color:var(--muted);
+      max-width: 70ch;
+    }
+
+    main{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 16px 42px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items:start;
+    }
+    @media (min-width: 920px){
+      .layout{
+        grid-template-columns: 2fr 1fr;
+        gap: 18px;
+      }
+      .sticky{
+        position: sticky;
+        top: 14px;
+      }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card > .card-header{
+      padding: 14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .card > .card-body{
+      padding: 14px;
+    }
+
+    fieldset{
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 0 0 14px;
+      background: rgba(0,0,0,.12);
+    }
+    legend{
+      padding: 0 8px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    label{
+      display:block;
+      font-weight: 650;
+      margin-bottom: 6px;
+    }
+    .hint{
+      margin: -2px 0 10px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 680px){
+      .row.cols-2{ grid-template-columns: 1fr 1fr; }
+      .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select, textarea{
+      width:100%;
+      padding: 10px 10px;
+      border: 1px solid rgba(255,255,255,.20);
+      border-radius: 10px;
+      background: rgba(10,15,30,.6);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    textarea{ min-height: 86px; resize: vertical; }
+
+    .radio-group, .check-grid{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 16px;
+      align-items:center;
+    }
+    .choice{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+    }
+    .choice input{ margin:0; }
+
+    .check-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 520px){
+      .check-grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .req{
+      color: var(--accent);
+      font-weight: 700;
+      margin-left: 6px;
+      font-size: .95rem;
+    }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 8px;
+    }
+
+    button{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.20);
+      background: linear-gradient(180deg, rgba(125,211,252,.22), rgba(125,211,252,.06));
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 750;
+      cursor:pointer;
+    }
+    button.secondary{
+      background: rgba(255,255,255,.04);
+    }
+    button:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+    }
+
+    .summary{
+      padding: 14px;
+    }
+    .summary h2{
+      margin:0 0 8px;
+      font-size: 1.15rem;
+    }
+    .summary dl{
+      margin:0;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .summary dt{
+      font-weight: 800;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+    .summary dd{
+      margin: 2px 0 0;
+      font-weight: 650;
+    }
+
+    .price-box{
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top:1px solid rgba(255,255,255,.10);
+    }
+    .price-line{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .grand{
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top:1px dashed rgba(255,255,255,.18);
+      font-size: 1.08rem;
+      font-weight: 900;
+    }
+
+    .sr-only{
+      position:absolute !important;
+      width:1px; height:1px;
+      padding:0; margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    .error-text{
+      margin-top: 6px;
+      color: var(--danger);
+      font-weight: 750;
+    }
+
+    .field-error input,
+    .field-error select,
+    .field-error textarea{
+      border-color: rgba(255, 92, 122, .85);
+      box-shadow: 0 0 0 3px rgba(255, 92, 122, .15);
+    }
+
+    .error-summary{
+      border: 1px solid rgba(255, 92, 122, .7);
+      background: rgba(255, 92, 122, .10);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 0 0 14px;
+    }
+    .error-summary h2{
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+    .error-summary ul{
+      margin: 0;
+      padding-left: 20px;
+    }
+    .error-summary a{
+      color: var(--text);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 2px;
+    }
+
+    .counter{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .95rem;
+      margin-top: 6px;
+    }
+
+    /* Confirmation view */
+    .confirm{
+      padding: 18px 14px;
+    }
+    .confirm h2{
+      margin: 0 0 10px;
+      font-size: 1.35rem;
+    }
+    .pill{
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, .14);
+      border: 1px solid rgba(52, 211, 153, .35);
+      color: var(--text);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+    .meta{
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .confirm .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (min-width: 900px){
+      .confirm .grid{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .confirm pre{
+      background: rgba(0,0,0,.20);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 12px;
+      overflow:auto;
+      margin:0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pizza Ordering Form</h1>
+    <p>Single-page demo app (local-only). Prices, taxes, and confirmation are mocked client-side.</p>
+  </header>
+
+  <main>
+    <div class="layout" id="appRoot">
+      <section class="card" id="formCard" aria-label="Pizza order form">
+        <div class="card-header">
+          <strong>Build your order</strong>
+        </div>
+        <div class="card-body">
+          <!-- Error summary (shown on submit when invalid) -->
+          <div id="errorSummary" class="error-summary hidden" role="alert" aria-labelledby="errorSummaryTitle" tabindex="-1">
+            <h2 id="errorSummaryTitle">Please fix the following</h2>
+            <ul id="errorList"></ul>
+          </div>
+
+          <form id="orderForm" novalidate>
+            <!-- 1. Customer info -->
+            <fieldset>
+              <legend>1) Customer info</legend>
+
+              <div class="row cols-2">
+                <div class="field" id="field-fullName">
+                  <label for="fullName">Full name <span class="req">(required)</span></label>
+                  <input id="fullName" name="fullName" type="text" autocomplete="name" required />
+                  <div id="err-fullName" class="error-text hidden"></div>
+                </div>
+
+                <div class="field" id="field-email">
+                  <label for="email">Email <span class="req">(required)</span></label>
+                  <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required />
+                  <div id="err-email" class="error-text hidden"></div>
+                </div>
+              </div>
+
+              <div class="row cols-2">
+                <div class="field" id="field-phone">
+                  <label for="phone">Phone <span class="hint">(optional)</span></label>
+                  <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" />
+                  <div id="err-phone" class="error-text hidden"></div>
+                </div>
+
+                <div class="field" id="field-orderType">
+                  <span class="sr-only" id="orderTypeHint">Choose pickup or delivery</span>
+                  <label>Order type <span class="req">(required)</span></label>
+                  <div class="radio-group" role="radiogroup" aria-describedby="orderTypeHint" aria-label="Order type">
+                    <label class="choice" for="orderType-pickup">
+                      <input type="radio" id="orderType-pickup" name="orderType" value="Pickup" required />
+                      Pickup
+                    </label>
+                    <label class="choice" for="orderType-delivery">
+                      <input type="radio" id="orderType-delivery" name="orderType" value="Delivery" required />
+                      Delivery (+$3.00 fee)
+                    </label>
+                  </div>
+                  <div id="err-orderType" class="error-text hidden"></div>
+                </div>
+              </div>
+
+              <div id="deliverySection" class="hidden" aria-hidden="true">
+                <fieldset>
+                  <legend>Delivery address <span class="req">(required for delivery)</span></legend>
+                  <div class="row">
+                    <div class="field" id="field-deliveryStreet">
+                      <label for="deliveryStreet">Street <span class="req">(required)</span></label>
+                      <input id="deliveryStreet" name="deliveryStreet" type="text" autocomplete="street-address" />
+                      <div id="err-deliveryStreet" class="error-text hidden"></div>
+                    </div>
+                  </div>
+                  <div class="row cols-2">
+                    <div class="field" id="field-deliveryCity">
+                      <label for="deliveryCity">City <span class="req">(required)</span></label>
+                      <input id="deliveryCity" name="deliveryCity" type="text" autocomplete="address-level2" />
+                      <div id="err-deliveryCity" class="error-text hidden"></div>
+                    </div>
+                    <div class="field" id="field-deliveryState">
+                      <label for="deliveryState">State/Region <span class="req">(required)</span></label>
+                      <input id="deliveryState" name="deliveryState" type="text" autocomplete="address-level1" />
+                      <div id="err-deliveryState" class="error-text hidden"></div>
+                    </div>
+                  </div>
+                  <div class="row cols-2">
+                    <div class="field" id="field-deliveryPostal">
+                      <label for="deliveryPostal">Postal code <span class="req">(required)</span></label>
+                      <input id="deliveryPostal" name="deliveryPostal" type="text" autocomplete="postal-code" inputmode="text" />
+                      <div id="err-deliveryPostal" class="error-text hidden"></div>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+            </fieldset>
+
+            <!-- 2. Pizza builder -->
+            <fieldset>
+              <legend>2) Pizza builder</legend>
+
+              <div class="row cols-2">
+                <div class="field" id="field-size">
+                  <label for="size">Size <span class="req">(required)</span></label>
+                  <select id="size" name="size" required>
+                    <option value="">Select a size</option>
+                    <option value="Small">Small ($10.00)</option>
+                    <option value="Medium">Medium ($12.00)</option>
+                    <option value="Large">Large ($14.00)</option>
+                  </select>
+                  <div id="err-size" class="error-text hidden"></div>
+                </div>
+
+                <div class="field" id="field-quantity">
+                  <label for="quantity">Quantity <span class="req">(required)</span></label>
+                  <input id="quantity" name="quantity" type="number" min="1" max="10" step="1" required inputmode="numeric" />
+                  <div class="hint">Enter 1–10.</div>
+                  <div id="err-quantity" class="error-text hidden"></div>
+                </div>
+              </div>
+
+              <div class="row cols-2">
+                <div class="field" id="field-crust">
+                  <label for="crust">Crust <span class="req">(required)</span></label>
+                  <select id="crust" name="crust" required>
+                    <option value="">Select a crust</option>
+                    <option value="Thin">Thin</option>
+                    <option value="Hand-tossed">Hand-tossed</option>
+                    <option value="Deep dish">Deep dish</option>
+                    <option value="Gluten-free">Gluten-free (+$2.00)</option>
+                  </select>
+                  <div id="err-crust" class="error-text hidden"></div>
+                </div>
+
+                <div class="field" id="field-sauce">
+                  <label for="sauce">Sauce <span class="req">(required)</span></label>
+                  <select id="sauce" name="sauce" required>
+                    <option value="">Select a sauce</option>
+                    <option value="Tomato">Tomato</option>
+                    <option value="Alfredo">Alfredo (+$1.00)</option>
+                    <option value="Pesto">Pesto (+$1.50)</option>
+                  </select>
+                  <div id="err-sauce" class="error-text hidden"></div>
+                </div>
+              </div>
+
+              <div class="row cols-2">
+                <div class="field" id="field-cheese">
+                  <label for="cheese">Cheese level <span class="req">(required)</span></label>
+                  <select id="cheese" name="cheese" required>
+                    <option value="">Select cheese level</option>
+                    <option value="Light">Light</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Extra">Extra (+$1.00)</option>
+                  </select>
+                  <div id="err-cheese" class="error-text hidden"></div>
+                </div>
+
+                <div class="field" id="field-toppings">
+                  <label id="toppingsLabel">Toppings <span class="hint">(optional)</span></label>
+                  <div class="hint">Each topping +$0.75</div>
+                  <div class="check-grid" role="group" aria-labelledby="toppingsLabel">
+                    <label class="choice" for="top-pepperoni">
+                      <input id="top-pepperoni" type="checkbox" name="toppings" value="Pepperoni" />
+                      Pepperoni
+                    </label>
+                    <label class="choice" for="top-sausage">
+                      <input id="top-sausage" type="checkbox" name="toppings" value="Sausage" />
+                      Sausage
+                    </label>
+                    <label class="choice" for="top-mushrooms">
+                      <input id="top-mushrooms" type="checkbox" name="toppings" value="Mushrooms" />
+                      Mushrooms
+                    </label>
+                    <label class="choice" for="top-onions">
+                      <input id="top-onions" type="checkbox" name="toppings" value="Onions" />
+                      Onions
+                    </label>
+                    <label class="choice" for="top-greenpeppers">
+                      <input id="top-greenpeppers" type="checkbox" name="toppings" value="Green peppers" />
+                      Green peppers
+                    </label>
+                    <label class="choice" for="top-olives">
+                      <input id="top-olives" type="checkbox" name="toppings" value="Olives" />
+                      Olives
+                    </label>
+                    <label class="choice" for="top-pineapple">
+                      <input id="top-pineapple" type="checkbox" name="toppings" value="Pineapple" />
+                      Pineapple
+                    </label>
+                  </div>
+                  <div id="err-toppings" class="error-text hidden"></div>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- 3. Extras -->
+            <fieldset>
+              <legend>3) Extras</legend>
+              <div class="hint">Optional add-ons.</div>
+              <div class="check-grid" role="group" aria-label="Extras">
+                <label class="choice" for="extra-breadsticks">
+                  <input id="extra-breadsticks" type="checkbox" name="extras" value="Breadsticks" />
+                  Breadsticks (+$4.00)
+                </label>
+                <label class="choice" for="extra-soda">
+                  <input id="extra-soda" type="checkbox" name="extras" value="Soda" />
+                  Soda (+$2.00)
+                </label>
+                <label class="choice" for="extra-salad">
+                  <input id="extra-salad" type="checkbox" name="extras" value="Salad" />
+                  Salad (+$5.00)
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- 4. Special instructions -->
+            <fieldset>
+              <legend>4) Special instructions</legend>
+              <div class="field" id="field-instructions">
+                <label for="instructions">Notes <span class="hint">(optional, max 200 characters)</span></label>
+                <textarea id="instructions" name="instructions" maxlength="200"></textarea>
+                <div class="counter" aria-live="polite">
+                  <span id="instrHint">You can include delivery instructions or allergies.</span>
+                  <span><span id="charCount">0</span>/200</span>
+                </div>
+                <div id="err-instructions" class="error-text hidden"></div>
+              </div>
+            </fieldset>
+
+            <!-- 5. Payment -->
+            <fieldset>
+              <legend>5) Payment</legend>
+
+              <div class="field" id="field-paymentMethod">
+                <label>Payment method <span class="req">(required)</span></label>
+                <div class="radio-group" role="radiogroup" aria-label="Payment method">
+                  <label class="choice" for="pay-card">
+                    <input type="radio" id="pay-card" name="paymentMethod" value="Card" required />
+                    Card
+                  </label>
+                  <label class="choice" for="pay-cash">
+                    <input type="radio" id="pay-cash" name="paymentMethod" value="Cash" required />
+                    Cash
+                  </label>
+                </div>
+                <div id="err-paymentMethod" class="error-text hidden"></div>
+              </div>
+
+              <div id="cashMessage" class="hidden" aria-hidden="true">
+                <p class="hint" id="cashText"><strong>Cash on delivery/pickup.</strong> Please have exact change if possible.</p>
+              </div>
+
+              <div id="cardSection" class="hidden" aria-hidden="true">
+                <fieldset>
+                  <legend>Card details <span class="req">(required for card)</span></legend>
+
+                  <div class="row cols-2">
+                    <div class="field" id="field-cardName">
+                      <label for="cardName">Name on card <span class="req">(required)</span></label>
+                      <input id="cardName" name="cardName" type="text" autocomplete="cc-name" />
+                      <div id="err-cardName" class="error-text hidden"></div>
+                    </div>
+                    <div class="field" id="field-cardNumber">
+                      <label for="cardNumber">Card number <span class="req">(required)</span></label>
+                      <input id="cardNumber" name="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" />
+                      <div class="hint">13–19 digits; spaces/dashes allowed.</div>
+                      <div id="err-cardNumber" class="error-text hidden"></div>
+                    </div>
+                  </div>
+
+                  <div class="row cols-3">
+                    <div class="field" id="field-cardExp">
+                      <label for="cardExp">Expiration (MM/YY) <span class="req">(required)</span></label>
+                      <input id="cardExp" name="cardExp" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" />
+                      <div id="err-cardExp" class="error-text hidden"></div>
+                    </div>
+                    <div class="field" id="field-cardCvv">
+                      <label for="cardCvv">CVV <span class="req">(required)</span></label>
+                      <input id="cardCvv" name="cardCvv" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="3–4 digits" />
+                      <div id="err-cardCvv" class="error-text hidden"></div>
+                    </div>
+                    <div class="field">
+                      <label for="billingZip">Billing postal code <span class="hint">(optional)</span></label>
+                      <input id="billingZip" name="billingZip" type="text" autocomplete="postal-code" />
+                      <div class="hint">Optional (not used for pricing).</div>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+            </fieldset>
+
+            <div class="actions">
+              <button type="submit" id="submitBtn">Place order</button>
+              <button type="button" class="secondary" id="resetBtn">Reset</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Order Summary panel -->
+      <aside class="card sticky" aria-label="Live order summary">
+        <div class="card-header">
+          <strong>Order Summary</strong>
+          <div class="sr-only" id="summaryLiveLabel">Order summary live region</div>
+        </div>
+        <div class="card-body summary">
+          <!-- aria-live to announce changes, debounced in JS -->
+          <div id="summaryLive" aria-live="polite" aria-atomic="true" aria-relevant="text additions">
+            <dl>
+              <div>
+                <dt>Customer</dt>
+                <dd id="sum-customer">—</dd>
+              </div>
+              <div>
+                <dt>Order type</dt>
+                <dd id="sum-orderType">—</dd>
+              </div>
+              <div>
+                <dt>Pizza</dt>
+                <dd id="sum-pizza">—</dd>
+              </div>
+              <div>
+                <dt>Toppings</dt>
+                <dd id="sum-toppings">None</dd>
+              </div>
+              <div>
+                <dt>Quantity</dt>
+                <dd id="sum-qty">—</dd>
+              </div>
+              <div>
+                <dt>Extras</dt>
+                <dd id="sum-extras">None</dd>
+              </div>
+            </dl>
+
+            <div class="price-box" aria-label="Pricing breakdown">
+              <div class="price-line">
+                <span>Subtotal</span>
+                <strong id="sum-subtotal">$0.00</strong>
+              </div>
+              <div class="price-line">
+                <span>Delivery fee</span>
+                <strong id="sum-deliveryFee">$0.00</strong>
+              </div>
+              <div class="price-line">
+                <span>Tax (8.5%)</span>
+                <strong id="sum-tax">$0.00</strong>
+              </div>
+              <div class="price-line grand">
+                <span>Grand total</span>
+                <span id="sum-total">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Confirmation view -->
+    <section class="card hidden" id="confirmCard" aria-label="Order confirmation">
+      <div class="card-header">
+        <strong>Confirmation</strong>
+      </div>
+      <div class="card-body confirm">
+        <h2 id="confirmHeading" tabindex="-1">Order confirmed</h2>
+        <p>
+          <span class="pill" id="orderNumberPill">Order #000000</span>
+          <span class="meta" id="orderTimestamp">—</span>
+        </p>
+
+        <div class="grid">
+          <div>
+            <h3>Summary</h3>
+            <pre id="confirmSummary"></pre>
+          </div>
+          <div>
+            <h3>Totals</h3>
+            <pre id="confirmTotals"></pre>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="newOrderBtn">Start New Order</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // Pricing constants
+      const PRICES = Object.freeze({
+        base: { Small: 10.00, Medium: 12.00, Large: 14.00 },
+        crustAdd: { 'Gluten-free': 2.00 },
+        sauceAdd: { Alfredo: 1.00, Pesto: 1.50 },
+        cheeseAdd: { Extra: 1.00 },
+        toppingEach: 0.75,
+        extras: { Breadsticks: 4.00, Soda: 2.00, Salad: 5.00 },
+        deliveryFee: 3.00,
+        taxRate: 0.085
+      });
+
+      // Helpers
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+      const money = (n) => {
+        const num = Number.isFinite(n) ? n : 0;
+        return num.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+      };
+
+      // Debounce to keep aria-live from being too spammy.
+      const debounce = (fn, ms) => {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      };
+
+      // Elements
+      const form = $('#orderForm');
+      const formCard = $('#formCard');
+      const confirmCard = $('#confirmCard');
+
+      const deliverySection = $('#deliverySection');
+      const cardSection = $('#cardSection');
+      const cashMessage = $('#cashMessage');
+
+      const resetBtn = $('#resetBtn');
+      const newOrderBtn = $('#newOrderBtn');
+
+      const errorSummary = $('#errorSummary');
+      const errorList = $('#errorList');
+
+      const instructions = $('#instructions');
+      const charCount = $('#charCount');
+
+      // Summary nodes
+      const sumCustomer = $('#sum-customer');
+      const sumOrderType = $('#sum-orderType');
+      const sumPizza = $('#sum-pizza');
+      const sumToppings = $('#sum-toppings');
+      const sumQty = $('#sum-qty');
+      const sumExtras = $('#sum-extras');
+      const sumSubtotal = $('#sum-subtotal');
+      const sumDeliveryFee = $('#sum-deliveryFee');
+      const sumTax = $('#sum-tax');
+      const sumTotal = $('#sum-total');
+
+      // Confirmation nodes
+      const confirmHeading = $('#confirmHeading');
+      const orderNumberPill = $('#orderNumberPill');
+      const orderTimestamp = $('#orderTimestamp');
+      const confirmSummary = $('#confirmSummary');
+      const confirmTotals = $('#confirmTotals');
+
+      // -------- State extraction --------
+      function getSelectedRadioValue(name) {
+        const el = $(`input[name="${CSS.escape(name)}"]:checked`);
+        return el ? el.value : '';
+      }
+
+      function getCheckedValues(name) {
+        return $$(`input[name="${CSS.escape(name)}"]:checked`).map(x => x.value);
+      }
+
+      function getFormData() {
+        const orderType = getSelectedRadioValue('orderType');
+        const paymentMethod = getSelectedRadioValue('paymentMethod');
+
+        return {
+          customer: {
+            fullName: $('#fullName').value.trim(),
+            email: $('#email').value.trim(),
+            phone: $('#phone').value.trim(),
+            orderType,
+            delivery: {
+              street: $('#deliveryStreet').value.trim(),
+              city: $('#deliveryCity').value.trim(),
+              state: $('#deliveryState').value.trim(),
+              postal: $('#deliveryPostal').value.trim()
+            }
+          },
+          pizza: {
+            size: $('#size').value,
+            crust: $('#crust').value,
+            sauce: $('#sauce').value,
+            cheese: $('#cheese').value,
+            toppings: getCheckedValues('toppings'),
+            quantity: $('#quantity').value.trim()
+          },
+          extras: getCheckedValues('extras'),
+          instructions: $('#instructions').value,
+          payment: {
+            method: paymentMethod,
+            card: {
+              name: $('#cardName').value.trim(),
+              numberRaw: $('#cardNumber').value.trim(),
+              exp: $('#cardExp').value.trim(),
+              cvv: $('#cardCvv').value.trim()
+            }
+          }
+        };
+      }
+
+      // -------- Pricing --------
+      function calcPricing(data) {
+        // pizza line is for one pizza; then multiplied by quantity.
+        const sizePrice = PRICES.base[data.pizza.size] ?? 0;
+
+        let addOns = 0;
+        if (data.pizza.crust === 'Gluten-free') addOns += PRICES.crustAdd['Gluten-free'];
+        if (data.pizza.sauce === 'Alfredo') addOns += PRICES.sauceAdd.Alfredo;
+        if (data.pizza.sauce === 'Pesto') addOns += PRICES.sauceAdd.Pesto;
+        if (data.pizza.cheese === 'Extra') addOns += PRICES.cheeseAdd.Extra;
+
+        const toppingsCount = data.pizza.toppings.length;
+        const toppingsCost = toppingsCount * PRICES.toppingEach;
+
+        const pizzaLineTotal = sizePrice + addOns + toppingsCost;
+
+        const qty = Number.parseInt(data.pizza.quantity, 10);
+        const quantity = Number.isFinite(qty) ? qty : 0;
+        const pizzaTotal = pizzaLineTotal * quantity;
+
+        const extrasTotal = data.extras.reduce((sum, x) => sum + (PRICES.extras[x] ?? 0), 0);
+
+        const subtotal = pizzaTotal + extrasTotal;
+
+        const deliveryFee = (data.customer.orderType === 'Delivery') ? PRICES.deliveryFee : 0;
+
+        const taxable = subtotal + deliveryFee;
+        const tax = taxable * PRICES.taxRate;
+
+        const grandTotal = taxable + tax;
+
+        return {
+          sizePrice, addOns, toppingsCost, toppingsCount,
+          pizzaLineTotal, quantity, pizzaTotal,
+          extrasTotal, subtotal, deliveryFee, tax, grandTotal
+        };
+      }
+
+      // -------- Accessible error handling --------
+      function setFieldError(fieldId, message) {
+        const fieldWrap = $(`#field-${fieldId}`);
+        const input = $(`#${fieldId}`) || $(`[name="${CSS.escape(fieldId)}"]`);
+
+        const err = $(`#err-${fieldId}`);
+        if (!fieldWrap || !err) return;
+
+        fieldWrap.classList.add('field-error');
+        err.textContent = message;
+        err.classList.remove('hidden');
+
+        // aria-describedby association
+        if (input) {
+          const existing = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+          if (!existing.includes(err.id)) existing.push(err.id);
+          input.setAttribute('aria-describedby', existing.join(' '));
+          input.setAttribute('aria-invalid', 'true');
+        }
+      }
+
+      function clearFieldError(fieldId) {
+        const fieldWrap = $(`#field-${fieldId}`);
+        const input = $(`#${fieldId}`);
+        const err = $(`#err-${fieldId}`);
+        if (!fieldWrap || !err) return;
+
+        fieldWrap.classList.remove('field-error');
+        err.textContent = '';
+        err.classList.add('hidden');
+
+        if (input) {
+          input.removeAttribute('aria-invalid');
+          // remove err id from aria-describedby
+          const existing = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+          const next = existing.filter(x => x !== err.id);
+          if (next.length) input.setAttribute('aria-describedby', next.join(' '));
+          else input.removeAttribute('aria-describedby');
+        }
+      }
+
+      function clearAllErrors() {
+        const ids = [
+          'fullName','email','phone','orderType',
+          'deliveryStreet','deliveryCity','deliveryState','deliveryPostal',
+          'size','crust','sauce','cheese','toppings','quantity',
+          'instructions',
+          'paymentMethod','cardName','cardNumber','cardExp','cardCvv'
+        ];
+        ids.forEach(clearFieldError);
+
+        errorList.innerHTML = '';
+        errorSummary.classList.add('hidden');
+        errorSummary.removeAttribute('tabindex');
+      }
+
+      function showErrorSummary(errors) {
+        // errors: [{ fieldId, label, message }]
+        errorList.innerHTML = '';
+        for (const e of errors) {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${e.fieldId}`;
+          a.textContent = `${e.label}: ${e.message}`;
+          a.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            const target = document.getElementById(e.fieldId);
+            if (target) target.focus();
+          });
+          li.appendChild(a);
+          errorList.appendChild(li);
+        }
+        errorSummary.classList.remove('hidden');
+        errorSummary.setAttribute('tabindex', '-1');
+        errorSummary.focus();
+      }
+
+      // -------- Validation --------
+      function isValidEmail(email) {
+        // pragmatic HTML email-ish check
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      function digitsOnly(str) {
+        return (str || '').replace(/[^\d]/g, '');
+      }
+
+      function validateCardNumber(raw) {
+        const digits = digitsOnly(raw);
+        if (digits.length < 13 || digits.length > 19) return { ok: false, message: 'Enter 13–19 digits.' };
+        return { ok: true, digits };
+      }
+
+      function validateExpMMYY(value) {
+        const v = (value || '').trim();
+        const m = v.match(/^(\d{2})\s*\/\s*(\d{2})$/);
+        if (!m) return { ok: false, message: 'Use MM/YY format.' };
+        const mm = Number(m[1]);
+        const yy = Number(m[2]);
+        if (mm < 1 || mm > 12) return { ok: false, message: 'Month must be 01–12.' };
+
+        // Interpret YY as 2000–2099
+        const fullYear = 2000 + yy;
+
+        // Card expires end of month
+        const expEnd = new Date(fullYear, mm, 0, 23, 59, 59, 999);
+        const now = new Date();
+        if (expEnd < now) return { ok: false, message: 'Expiration date is in the past.' };
+
+        // plausibility: not absurdly far
+        if (fullYear > now.getFullYear() + 25) return { ok: false, message: 'Expiration year looks too far in the future.' };
+
+        return { ok: true, mm, yy };
+      }
+
+      function validateCvv(value) {
+        const digits = digitsOnly(value);
+        if (!/^\d{3,4}$/.test(digits)) return { ok: false, message: 'Enter 3–4 digits.' };
+        return { ok: true };
+      }
+
+      function setRequired(el, isRequired) {
+        if (!el) return;
+        if (isRequired) el.setAttribute('required', '');
+        else el.removeAttribute('required');
+      }
+
+      function validateAll(data, { showInline = true } = {}) {
+        const errors = [];
+        const addError = (fieldId, label, message) => {
+          errors.push({ fieldId, label, message });
+          if (showInline) setFieldError(fieldId, message);
+        };
+
+        // Clear only errors we might re-set (do not nuke summary here; caller manages)
+        // For simplicity, clear all inline errors each time.
+        clearAllErrors();
+
+        // Customer
+        if (!data.customer.fullName) addError('fullName', 'Full name', 'This field is required.');
+        if (!data.customer.email) addError('email', 'Email', 'This field is required.');
+        else if (!isValidEmail(data.customer.email)) addError('email', 'Email', 'Enter a valid email address.');
+
+        if (!data.customer.orderType) addError('orderType', 'Order type', 'Please choose Pickup or Delivery.');
+
+        const isDelivery = data.customer.orderType === 'Delivery';
+        const deliveryIds = ['deliveryStreet','deliveryCity','deliveryState','deliveryPostal'];
+        if (isDelivery) {
+          if (!data.customer.delivery.street) addError('deliveryStreet', 'Street', 'This field is required.');
+          if (!data.customer.delivery.city) addError('deliveryCity', 'City', 'This field is required.');
+          if (!data.customer.delivery.state) addError('deliveryState', 'State/Region', 'This field is required.');
+          if (!data.customer.delivery.postal) addError('deliveryPostal', 'Postal code', 'This field is required.');
+        }
+
+        // Pizza
+        if (!data.pizza.size) addError('size', 'Size', 'Please select a size.');
+        if (!data.pizza.crust) addError('crust', 'Crust', 'Please select a crust.');
+        if (!data.pizza.sauce) addError('sauce', 'Sauce', 'Please select a sauce.');
+        if (!data.pizza.cheese) addError('cheese', 'Cheese level', 'Please select a cheese level.');
+
+        const qty = Number.parseInt(data.pizza.quantity, 10);
+        if (!data.pizza.quantity) addError('quantity', 'Quantity', 'This field is required.');
+        else if (!Number.isFinite(qty) || qty < 1 || qty > 10) addError('quantity', 'Quantity', 'Quantity must be an integer from 1 to 10.');
+
+        // Instructions length enforced by maxlength, but keep a defensive check
+        if ((data.instructions || '').length > 200) addError('instructions', 'Special instructions', 'Must be 200 characters or fewer.');
+
+        // Payment
+        if (!data.payment.method) addError('paymentMethod', 'Payment method', 'Please choose Card or Cash.');
+
+        const isCard = data.payment.method === 'Card';
+        if (isCard) {
+          if (!data.payment.card.name) addError('cardName', 'Name on card', 'This field is required.');
+
+          if (!data.payment.card.numberRaw) addError('cardNumber', 'Card number', 'This field is required.');
+          else {
+            const cn = validateCardNumber(data.payment.card.numberRaw);
+            if (!cn.ok) addError('cardNumber', 'Card number', cn.message);
+          }
+
+          if (!data.payment.card.exp) addError('cardExp', 'Expiration', 'This field is required.');
+          else {
+            const ex = validateExpMMYY(data.payment.card.exp);
+            if (!ex.ok) addError('cardExp', 'Expiration', ex.message);
+          }
+
+          if (!data.payment.card.cvv) addError('cardCvv', 'CVV', 'This field is required.');
+          else {
+            const cv = validateCvv(data.payment.card.cvv);
+            if (!cv.ok) addError('cardCvv', 'CVV', cv.message);
+          }
+        }
+
+        // Ensure aria-invalid is not left on radios/selects without explicit id mapping
+        // Special case: orderType and paymentMethod are radio groups; we show error under wrapper.
+        // We still add aria-describedby to the first radio for screen readers.
+        if (showInline) {
+          associateGroupError('orderType', 'err-orderType');
+          associateGroupError('paymentMethod', 'err-paymentMethod');
+        }
+
+        return { ok: errors.length === 0, errors };
+      }
+
+      function associateGroupError(groupName, errId) {
+        const errEl = document.getElementById(errId);
+        if (!errEl || errEl.classList.contains('hidden')) return;
+
+        const radios = $$(`input[name="${CSS.escape(groupName)}"]`);
+        if (!radios.length) return;
+
+        radios.forEach(r => r.setAttribute('aria-invalid', 'true'));
+        // Attach describedby to first radio (common pattern for radiogroup)
+        const first = radios[0];
+        const existing = (first.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+        if (!existing.includes(errId)) existing.push(errId);
+        first.setAttribute('aria-describedby', existing.join(' '));
+      }
+
+      // -------- Dynamic sections + focus management --------
+      function setSectionVisibility(sectionEl, show) {
+        // Use both hidden class and aria-hidden; do not destroy values.
+        if (show) {
+          sectionEl.classList.remove('hidden');
+          sectionEl.setAttribute('aria-hidden', 'false');
+        } else {
+          sectionEl.classList.add('hidden');
+          sectionEl.setAttribute('aria-hidden', 'true');
+        }
+      }
+
+      function updateDynamicRequirements({ moveFocus = false } = {}) {
+        const data = getFormData();
+        const isDelivery = data.customer.orderType === 'Delivery';
+        const isCard = data.payment.method === 'Card';
+
+        // Delivery address: toggle + required attributes
+        setSectionVisibility(deliverySection, isDelivery);
+        const deliveryFields = ['deliveryStreet','deliveryCity','deliveryState','deliveryPostal'].map(id => document.getElementById(id));
+        deliveryFields.forEach(el => setRequired(el, isDelivery));
+
+        // Payment: toggle card/cash
+        setSectionVisibility(cardSection, isCard);
+        setSectionVisibility(cashMessage, data.payment.method === 'Cash');
+
+        const cardFields = ['cardName','cardNumber','cardExp','cardCvv'].map(id => document.getElementById(id));
+        cardFields.forEach(el => setRequired(el, isCard));
+
+        // Focus management: when revealing a section, focus first newly-required field.
+        if (moveFocus) {
+          if (isDelivery) {
+            const first = document.getElementById('deliveryStreet');
+            if (first) first.focus();
+          } else if (isCard) {
+            const first = document.getElementById('cardName');
+            if (first) first.focus();
+          } else if (data.payment.method === 'Cash') {
+            // move focus to the cash message container so SR users get context (then allow tab to proceed)
+            $('#cashText').setAttribute('tabindex', '-1');
+            $('#cashText').focus();
+            // remove tabindex after focus to keep tab order clean
+            setTimeout(() => $('#cashText').removeAttribute('tabindex'), 0);
+          }
+        }
+      }
+
+      // -------- Summary rendering (debounced) --------
+      function buildSummaryText(data, pricing) {
+        const customer = data.customer.fullName || '—';
+        const orderType = data.customer.orderType || '—';
+        const pizzaParts = [
+          data.pizza.size || '—',
+          data.pizza.crust || '—',
+          data.pizza.sauce || '—',
+          data.pizza.cheese || '—'
+        ];
+        const pizza = pizzaParts.join(' / ');
+
+        const toppings = data.pizza.toppings.length ? data.pizza.toppings.join(', ') : 'None';
+        const extras = data.extras.length ? data.extras.join(', ') : 'None';
+        const qty = data.pizza.quantity ? String(data.pizza.quantity) : '—';
+
+        return { customer, orderType, pizza, toppings, extras, qty };
+      }
+
+      const renderSummary = debounce(() => {
+        const data = getFormData();
+        const pricing = calcPricing(data);
+        const s = buildSummaryText(data, pricing);
+
+        sumCustomer.textContent = s.customer;
+        sumOrderType.textContent = s.orderType;
+        sumPizza.textContent = s.pizza;
+        sumToppings.textContent = s.toppings;
+        sumExtras.textContent = s.extras;
+        sumQty.textContent = s.qty;
+
+        sumSubtotal.textContent = money(pricing.subtotal);
+        sumDeliveryFee.textContent = money(pricing.deliveryFee);
+        sumTax.textContent = money(pricing.tax);
+        sumTotal.textContent = money(pricing.grandTotal);
+      }, 250); // ~4 updates/sec max
+
+      // -------- Confirmation rendering --------
+      function formatConfirmation(data, pricing) {
+        const lines = [];
+
+        lines.push(`Customer: ${data.customer.fullName || '—'}`);
+        lines.push(`Email: ${data.customer.email || '—'}`);
+        if (data.customer.phone) lines.push(`Phone: ${data.customer.phone}`);
+        lines.push(`Order type: ${data.customer.orderType}`);
+
+        if (data.customer.orderType === 'Delivery') {
+          lines.push('');
+          lines.push('Delivery address:');
+          lines.push(`  ${data.customer.delivery.street}`);
+          lines.push(`  ${data.customer.delivery.city}, ${data.customer.delivery.state} ${data.customer.delivery.postal}`);
+        }
+
+        lines.push('');
+        lines.push('Pizza:');
+        lines.push(`  Size: ${data.pizza.size}`);
+        lines.push(`  Crust: ${data.pizza.crust}`);
+        lines.push(`  Sauce: ${data.pizza.sauce}`);
+        lines.push(`  Cheese: ${data.pizza.cheese}`);
+        lines.push(`  Toppings: ${data.pizza.toppings.length ? data.pizza.toppings.join(', ') : 'None'}`);
+        lines.push(`  Quantity: ${pricing.quantity}`);
+
+        lines.push('');
+        lines.push(`Extras: ${data.extras.length ? data.extras.join(', ') : 'None'}`);
+
+        if (data.instructions.trim()) {
+          lines.push('');
+          lines.push(`Special instructions: ${data.instructions.trim()}`);
+        }
+
+        lines.push('');
+        lines.push(`Payment method: ${data.payment.method}`);
+        if (data.payment.method === 'Cash') {
+          lines.push('Payment note: Cash on delivery/pickup.');
+        } else {
+          const digits = digitsOnly(data.payment.card.numberRaw);
+          const masked = digits ? `**** **** **** ${digits.slice(-4)}` : '—';
+          lines.push(`Card: ${masked}`);
+        }
+
+        const totals = [];
+        totals.push(`Pizza line total (1x): ${money(pricing.pizzaLineTotal)}`);
+        totals.push(`Pizza total (x${pricing.quantity}): ${money(pricing.pizzaTotal)}`);
+        totals.push(`Extras: ${money(pricing.extrasTotal)}`);
+        totals.push(`Subtotal: ${money(pricing.subtotal)}`);
+        totals.push(`Delivery fee: ${money(pricing.deliveryFee)}`);
+        totals.push(`Tax (8.5%): ${money(pricing.tax)}`);
+        totals.push(`Grand total: ${money(pricing.grandTotal)}`);
+
+        return { summary: lines.join('\n'), totals: totals.join('\n') };
+      }
+
+      function showConfirmation(data) {
+        const pricing = calcPricing(data);
+
+        const orderNumber = String(Math.floor(100000 + Math.random() * 900000));
+        const timestamp = new Date().toLocaleString();
+
+        orderNumberPill.textContent = `Order #${orderNumber}`;
+        orderTimestamp.textContent = `Placed: ${timestamp}`;
+
+        const formatted = formatConfirmation(data, pricing);
+        confirmSummary.textContent = formatted.summary;
+        confirmTotals.textContent = formatted.totals;
+
+        formCard.classList.add('hidden');
+        confirmCard.classList.remove('hidden');
+
+        // Move focus to confirmation heading
+        confirmHeading.focus();
+      }
+
+      function showFormView() {
+        confirmCard.classList.add('hidden');
+        formCard.classList.remove('hidden');
+        // focus the first field
+        $('#fullName').focus();
+      }
+
+      // -------- Wiring --------
+      function updateCharCounter() {
+        const len = (instructions.value || '').length;
+        charCount.textContent = String(len);
+      }
+
+      function onAnyInputChange() {
+        // Keep dynamic required fields in sync (but don't steal focus)
+        updateDynamicRequirements({ moveFocus: false });
+        renderSummary();
+
+        // Inline validation on interaction: validate only the changed field (lightweight)
+        // For simplicity and clarity, run full validation without summary (still inline),
+        // but don't force error summary or focus jumps.
+        validateAll(getFormData(), { showInline: true });
+      }
+
+      function setup() {
+        // Defaults for better UX
+        $('#quantity').value = '1';
+
+        updateCharCounter();
+        updateDynamicRequirements({ moveFocus: false });
+        renderSummary();
+
+        // Input listeners
+        form.addEventListener('input', () => {
+          updateCharCounter();
+          onAnyInputChange();
+        });
+        form.addEventListener('change', () => onAnyInputChange());
+
+        // Delivery focus behavior on selection
+        $$('input[name="orderType"]').forEach(r => {
+          r.addEventListener('change', () => updateDynamicRequirements({ moveFocus: true }));
+        });
+
+        // Payment focus behavior
+        $$('input[name="paymentMethod"]').forEach(r => {
+          r.addEventListener('change', () => updateDynamicRequirements({ moveFocus: true }));
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+          form.reset();
+          $('#quantity').value = '1';
+          clearAllErrors();
+          updateCharCounter();
+          updateDynamicRequirements({ moveFocus: false });
+          renderSummary();
+          $('#fullName').focus();
+        });
+
+        // Submit
+        form.addEventListener('submit', (ev) => {
+          ev.preventDefault();
+
+          // Make sure dynamic required attrs are accurate
+          updateDynamicRequirements({ moveFocus: false });
+
+          const data = getFormData();
+          const { ok, errors } = validateAll(data, { showInline: true });
+
+          if (!ok) {
+            showErrorSummary(errors);
+            // Focus first invalid field after summary is displayed
+            const first = errors[0]?.fieldId ? document.getElementById(errors[0].fieldId) : null;
+            if (first) setTimeout(() => first.focus(), 0);
+            return;
+          }
+
+          // Hide error summary if previously shown
+          errorSummary.classList.add('hidden');
+          errorList.innerHTML = '';
+
+          showConfirmation(data);
+        });
+
+        // Start new order
+        newOrderBtn.addEventListener('click', () => {
+          form.reset();
+          $('#quantity').value = '1';
+          clearAllErrors();
+          updateCharCounter();
+          updateDynamicRequirements({ moveFocus: false });
+          renderSummary();
+          showFormView();
+        });
+      }
+
+      setup();
+    })();
+  </script>
+</body>
+</html>

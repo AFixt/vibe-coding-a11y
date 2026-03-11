@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pizza Ordering Form</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --panel2:#0c162b;
+      --text:#e8eefc;
+      --muted:#a9b7d6;
+      --border:rgba(232,238,252,.14);
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(900px 550px at 10% 0%, rgba(125,211,252,.22), transparent 55%),
+        radial-gradient(800px 520px at 95% 10%, rgba(167,139,250,.16), transparent 55%),
+        linear-gradient(180deg, var(--bg), #070b14 65%);
+      color:var(--text);
+    }
+    a{ color: var(--accent); }
+
+    .app{
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 22px 16px 34px;
+    }
+    header{
+      display:flex;
+      gap:14px;
+      justify-content:space-between;
+      align-items:flex-end;
+      margin-bottom: 16px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(22px, 3.4vw, 32px);
+      letter-spacing: .2px;
+    }
+    .subtitle{
+      margin:0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.4fr .9fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      header{ align-items:flex-start; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card .card-h{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .card .card-h h2{
+      margin:0;
+      font-size: 15px;
+      letter-spacing: .25px;
+      text-transform: uppercase;
+      color: #dbe7ff;
+    }
+    .pill{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      border:1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.12);
+      white-space: nowrap;
+    }
+    .card .card-b{ padding: 14px 16px 16px; }
+
+    form{ display: flex; flex-direction: column; gap: 14px; }
+
+    .section{
+      background: rgba(0,0,0,.10);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .section + .section{ margin-top: 2px; }
+    .section h3{
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      letter-spacing: .2px;
+      color: #d9e6ff;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    @media (max-width: 620px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    label{
+      display:block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"], textarea, select{
+      width:100%;
+      padding: 10px 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(232,238,252,.18);
+      background: rgba(5,10,20,.55);
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    }
+    textarea{ resize: vertical; min-height: 86px; }
+
+    input::placeholder, textarea::placeholder{
+      color: rgba(169,183,214,.65);
+    }
+    input:focus, textarea:focus, select:focus{
+      border-color: rgba(125,211,252,.55);
+      box-shadow:
+        inset 0 0 0 1px rgba(125,211,252,.25),
+        0 0 0 3px rgba(125,211,252,.14);
+    }
+
+    .choices{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 12px;
+      padding-top: 2px;
+    }
+    .choices .choice{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size: 14px;
+      color: #dbe7ff;
+    }
+    input[type="radio"], input[type="checkbox"]{
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .qty{
+      display:grid;
+      grid-template-columns: 1fr;
+    }
+
+    .helper{
+      margin-top: 6px;
+      font-size: 12px;
+      color: rgba(169,183,214,.9);
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .count{
+      font-family: var(--mono);
+      color: rgba(169,183,214,.9);
+    }
+
+    .error{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--bad);
+      display:none;
+    }
+    .field.invalid input,
+    .field.invalid textarea,
+    .field.invalid select{
+      border-color: rgba(251,113,133,.65);
+      box-shadow:
+        inset 0 0 0 1px rgba(251,113,133,.22),
+        0 0 0 3px rgba(251,113,133,.12);
+    }
+    .field.invalid .error{ display:block; }
+
+    .divider{
+      height:1px;
+      background: var(--border);
+      margin: 10px 0 0;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    button{
+      border: 1px solid rgba(232,238,252,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 650;
+      letter-spacing: .15px;
+    }
+    button:hover{ border-color: rgba(125,211,252,.45); }
+    button.primary{
+      border-color: rgba(125,211,252,.55);
+      background: linear-gradient(135deg, rgba(125,211,252,.18), rgba(167,139,250,.14));
+    }
+    button.primary:disabled{
+      opacity: .55;
+      cursor:not-allowed;
+      border-color: rgba(232,238,252,.16);
+      background: rgba(255,255,255,.04);
+    }
+
+    .summary{
+      position: sticky;
+      top: 14px;
+    }
+    @media (max-width: 980px){
+      .summary{ position: static; }
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .kv .item{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0,0,0,.10);
+      padding: 10px 10px;
+    }
+    .kv .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .kv .v{
+      font-size: 14px;
+      color: #eaf1ff;
+      word-break: break-word;
+    }
+
+    .prices{
+      margin-top: 12px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      overflow:hidden;
+      background: rgba(0,0,0,.10);
+    }
+    .prices .line{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-top:1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: #eaf1ff;
+    }
+    .prices .line:first-child{ border-top: none; }
+    .prices .line.muted{ color: rgba(169,183,214,.95); }
+    .prices .line.total{
+      font-size: 13.5px;
+      font-weight: 800;
+      background: rgba(125,211,252,.07);
+    }
+
+    .badge{
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: rgba(169,183,214,.95);
+      background: rgba(0,0,0,.12);
+      white-space: nowrap;
+    }
+
+    .hidden{ display:none !important; }
+
+    /* Confirmation view */
+    .confirm-wrap{
+      display:none;
+      margin-top: 16px;
+    }
+    .confirm-wrap.active{ display:block; }
+    .form-wrap.hidden{ display:none; }
+
+    .confirm{
+      padding: 16px;
+    }
+    .confirm h2{
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+    .confirm .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .confirm .meta code{
+      font-family: var(--mono);
+      color: #eaf1ff;
+      background: rgba(0,0,0,.15);
+      border:1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 8px;
+    }
+    .confirm .two{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 820px){
+      .confirm .two{ grid-template-columns: 1fr; }
+    }
+
+    .smallnote{
+      font-size: 12px;
+      color: rgba(169,183,214,.95);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Pizza Ordering Form</h1>
+        <p class="subtitle">Single-page demo app (no server) — live summary, pricing, validation, and confirmation.</p>
+      </div>
+      <div class="pill" id="headerPill">Tax: 8.5% • Delivery: $3.00</div>
+    </header>
+
+    <div class="grid">
+      <!-- Left: Form -->
+      <div class="card form-wrap" id="formWrap">
+        <div class="card-h">
+          <h2>Order details</h2>
+          <span class="badge" id="validBadge">Form: checking…</span>
+        </div>
+        <div class="card-b">
+          <form id="orderForm" novalidate>
+            <!-- 1. Customer info -->
+            <div class="section">
+              <h3>1) Customer info</h3>
+
+              <div class="row">
+                <div class="field" data-field="fullName">
+                  <label for="fullName">Full name <span class="badge">required</span></label>
+                  <input id="fullName" name="fullName" type="text" placeholder="Alex Johnson" autocomplete="name" />
+                  <div class="error" id="errFullName">Please enter your full name.</div>
+                </div>
+
+                <div class="field" data-field="email">
+                  <label for="email">Email <span class="badge">required</span></label>
+                  <input id="email" name="email" type="email" placeholder="alex@example.com" autocomplete="email" />
+                  <div class="error" id="errEmail">Please enter a valid email address.</div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field" data-field="phone">
+                  <label for="phone">Phone <span class="badge">optional</span></label>
+                  <input id="phone" name="phone" type="tel" placeholder="(555) 123-4567" autocomplete="tel" />
+                  <div class="error" id="errPhone">Phone number looks invalid (optional, but must be plausible if provided).</div>
+                </div>
+
+                <div class="field" data-field="orderType">
+                  <label>Order type <span class="badge">required</span></label>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="orderType" value="Pickup" /> Pickup</label>
+                    <label class="choice"><input type="radio" name="orderType" value="Delivery" /> Delivery</label>
+                  </div>
+                  <div class="error" id="errOrderType">Please choose Pickup or Delivery.</div>
+                </div>
+              </div>
+
+              <div id="deliveryFields" class="hidden">
+                <div class="divider"></div>
+                <div style="margin-top:10px;">
+                  <div class="row">
+                    <div class="field" data-field="street">
+                      <label for="street">Street <span class="badge">required for delivery</span></label>
+                      <input id="street" name="street" type="text" placeholder="123 Main St" autocomplete="street-address" />
+                      <div class="error" id="errStreet">Street is required for delivery.</div>
+                    </div>
+                    <div class="field" data-field="city">
+                      <label for="city">City <span class="badge">required for delivery</span></label>
+                      <input id="city" name="city" type="text" placeholder="Springfield" autocomplete="address-level2" />
+                      <div class="error" id="errCity">City is required for delivery.</div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="field" data-field="region">
+                      <label for="region">State/Region <span class="badge">required for delivery</span></label>
+                      <input id="region" name="region" type="text" placeholder="CA" autocomplete="address-level1" />
+                      <div class="error" id="errRegion">State/Region is required for delivery.</div>
+                    </div>
+                    <div class="field" data-field="postal">
+                      <label for="postal">Postal code <span class="badge">required for delivery</span></label>
+                      <input id="postal" name="postal" type="text" placeholder="94105" autocomplete="postal-code" />
+                      <div class="error" id="errPostal">Postal code is required for delivery.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Pizza builder -->
+            <div class="section">
+              <h3>2) Pizza builder</h3>
+
+              <div class="row">
+                <div class="field" data-field="size">
+                  <label for="size">Size <span class="badge">required</span></label>
+                  <select id="size" name="size">
+                    <option value="">Choose…</option>
+                    <option value="Small">Small ($10.00)</option>
+                    <option value="Medium">Medium ($12.00)</option>
+                    <option value="Large">Large ($14.00)</option>
+                  </select>
+                  <div class="error" id="errSize">Please select a pizza size.</div>
+                </div>
+
+                <div class="field" data-field="quantity">
+                  <label for="quantity">Quantity <span class="badge">required</span></label>
+                  <input id="quantity" name="quantity" type="text" inputmode="numeric" placeholder="1–10" />
+                  <div class="helper">
+                    <span>Integer 1–10</span>
+                    <span class="count" id="qtyHint">—</span>
+                  </div>
+                  <div class="error" id="errQuantity">Quantity must be an integer from 1 to 10.</div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field" data-field="crust">
+                  <label>Crust <span class="badge">required</span></label>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="crust" value="Thin" /> Thin</label>
+                    <label class="choice"><input type="radio" name="crust" value="Hand-tossed" /> Hand-tossed</label>
+                    <label class="choice"><input type="radio" name="crust" value="Deep dish" /> Deep dish</label>
+                    <label class="choice"><input type="radio" name="crust" value="Gluten-free" /> Gluten-free (+$2.00)</label>
+                  </div>
+                  <div class="error" id="errCrust">Please choose a crust.</div>
+                </div>
+
+                <div class="field" data-field="sauce">
+                  <label>Sauce <span class="badge">required</span></label>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="sauce" value="Tomato" /> Tomato</label>
+                    <label class="choice"><input type="radio" name="sauce" value="Alfredo" /> Alfredo (+$1.00)</label>
+                    <label class="choice"><input type="radio" name="sauce" value="Pesto" /> Pesto (+$1.50)</label>
+                  </div>
+                  <div class="error" id="errSauce">Please choose a sauce.</div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="field" data-field="cheese">
+                  <label>Cheese level <span class="badge">required</span></label>
+                  <div class="choices">
+                    <label class="choice"><input type="radio" name="cheese" value="Light" /> Light</label>
+                    <label class="choice"><input type="radio" name="cheese" value="Normal" /> Normal</label>
+                    <label class="choice"><input type="radio" name="cheese" value="Extra" /> Extra (+$1.00)</label>
+                  </div>
+                  <div class="error" id="errCheese">Please choose a cheese level.</div>
+                </div>
+
+                <div class="field" data-field="toppings">
+                  <label>Toppings <span class="badge">+$0.75 each</span></label>
+                  <div class="choices" id="toppingsGroup">
+                    <label class="choice"><input type="checkbox" name="toppings" value="Pepperoni" /> Pepperoni</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Sausage" /> Sausage</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Mushrooms" /> Mushrooms</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Onions" /> Onions</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Green peppers" /> Green peppers</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Olives" /> Olives</label>
+                    <label class="choice"><input type="checkbox" name="toppings" value="Pineapple" /> Pineapple</label>
+                  </div>
+                  <div class="helper"><span>Optional</span><span class="count" id="toppingCount">0 selected</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Extras -->
+            <div class="section">
+              <h3>3) Extras</h3>
+              <div class="choices">
+                <label class="choice"><input type="checkbox" name="extras" value="Breadsticks" /> Breadsticks (+$4.00)</label>
+                <label class="choice"><input type="checkbox" name="extras" value="Soda" /> Soda (+$2.00)</label>
+                <label class="choice"><input type="checkbox" name="extras" value="Salad" /> Salad (+$5.00)</label>
+              </div>
+            </div>
+
+            <!-- 4. Special instructions -->
+            <div class="section">
+              <h3>4) Special instructions</h3>
+              <div class="field" data-field="instructions">
+                <label for="instructions">Instructions <span class="badge">optional</span></label>
+                <textarea id="instructions" name="instructions" maxlength="200" placeholder="e.g., Cut into squares, ring doorbell, no napkins…"></textarea>
+                <div class="helper">
+                  <span>Max 200 characters</span>
+                  <span class="count" id="instCount">0/200</span>
+                </div>
+                <div class="error" id="errInstructions">Please keep instructions within 200 characters.</div>
+              </div>
+            </div>
+
+            <!-- 5. Payment -->
+            <div class="section">
+              <h3>5) Payment</h3>
+
+              <div class="field" data-field="payMethod">
+                <label>Payment method <span class="badge">required</span></label>
+                <div class="choices">
+                  <label class="choice"><input type="radio" name="payMethod" value="Card" /> Card</label>
+                  <label class="choice"><input type="radio" name="payMethod" value="Cash" /> Cash</label>
+                </div>
+                <div class="error" id="errPayMethod">Please select Card or Cash.</div>
+              </div>
+
+              <div id="cashMessage" class="hidden" style="margin-top:8px;">
+                <p class="smallnote"><strong>Cash on delivery/pickup.</strong> Please have exact change if possible.</p>
+              </div>
+
+              <div id="cardFields" class="hidden" style="margin-top:10px;">
+                <div class="row">
+                  <div class="field" data-field="cardName">
+                    <label for="cardName">Name on card <span class="badge">required for card</span></label>
+                    <input id="cardName" name="cardName" type="text" placeholder="Alex Johnson" autocomplete="cc-name" />
+                    <div class="error" id="errCardName">Name on card is required.</div>
+                  </div>
+
+                  <div class="field" data-field="cardNumber">
+                    <label for="cardNumber">Card number <span class="badge">13–19 digits</span></label>
+                    <input id="cardNumber" name="cardNumber" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="cc-number" />
+                    <div class="error" id="errCardNumber">Card number must be 13–19 digits (spaces/dashes allowed).</div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field" data-field="exp">
+                    <label for="exp">Expiration (MM/YY) <span class="badge">required</span></label>
+                    <input id="exp" name="exp" type="text" inputmode="numeric" placeholder="MM/YY" autocomplete="cc-exp" />
+                    <div class="error" id="errExp">Enter a valid future expiration date in MM/YY.</div>
+                  </div>
+
+                  <div class="field" data-field="cvv">
+                    <label for="cvv">CVV <span class="badge">3–4 digits</span></label>
+                    <input id="cvv" name="cvv" type="text" inputmode="numeric" placeholder="123" autocomplete="cc-csc" />
+                    <div class="error" id="errCvv">CVV must be 3–4 digits.</div>
+                  </div>
+                </div>
+
+                <p class="smallnote" style="margin-top:8px;">
+                  Note: This is a mock checkout — no real payment is processed.
+                </p>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="button" id="resetBtn">Reset</button>
+              <button class="primary" id="placeOrderBtn" type="submit" disabled>Place Order</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div class="card summary">
+        <div class="card-h">
+          <h2>Order summary</h2>
+          <span class="pill" id="summaryPill">Live</span>
+        </div>
+        <div class="card-b">
+          <div class="kv" id="summaryKV">
+            <div class="item">
+              <div class="k">Customer</div>
+              <div class="v" id="sumCustomer">—</div>
+            </div>
+            <div class="item">
+              <div class="k">Order type</div>
+              <div class="v" id="sumOrderType">—</div>
+            </div>
+            <div class="item">
+              <div class="k">Pizza</div>
+              <div class="v" id="sumPizza">—</div>
+            </div>
+            <div class="item">
+              <div class="k">Toppings</div>
+              <div class="v" id="sumToppings">None</div>
+            </div>
+            <div class="item">
+              <div class="k">Quantity</div>
+              <div class="v" id="sumQty">—</div>
+            </div>
+            <div class="item">
+              <div class="k">Extras</div>
+              <div class="v" id="sumExtras">None</div>
+            </div>
+          </div>
+
+          <div class="prices" aria-label="Pricing breakdown">
+            <div class="line muted"><span>Subtotal</span><span id="sumSubtotal">$0.00</span></div>
+            <div class="line muted"><span>Delivery fee</span><span id="sumDelivery">$0.00</span></div>
+            <div class="line muted"><span>Tax (8.5%)</span><span id="sumTax">$0.00</span></div>
+            <div class="line total"><span>Grand total</span><span id="sumTotal">$0.00</span></div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <p class="smallnote">
+              Prices update instantly. “Place Order” enables once all required fields are valid.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation view -->
+    <div class="card confirm-wrap" id="confirmWrap">
+      <div class="card-h">
+        <h2>Confirmation</h2>
+        <span class="pill">Mock order submitted</span>
+      </div>
+      <div class="confirm">
+        <h2>Thanks! Your order is confirmed.</h2>
+        <div class="meta">
+          <span>Order # <code id="confOrderNum">000000</code></span>
+          <span>Placed <code id="confTimestamp">—</code></span>
+        </div>
+
+        <div class="two">
+          <div class="section">
+            <h3>Order summary</h3>
+            <div class="kv">
+              <div class="item"><div class="k">Customer</div><div class="v" id="confCustomer">—</div></div>
+              <div class="item"><div class="k">Email</div><div class="v" id="confEmail">—</div></div>
+              <div class="item"><div class="k">Phone</div><div class="v" id="confPhone">—</div></div>
+              <div class="item"><div class="k">Order type</div><div class="v" id="confOrderType">—</div></div>
+              <div class="item hidden" id="confAddressItem">
+                <div class="k">Delivery address</div>
+                <div class="v" id="confAddress">—</div>
+              </div>
+              <div class="item"><div class="k">Payment</div><div class="v" id="confPayment">—</div></div>
+              <div class="item"><div class="k">Instructions</div><div class="v" id="confInstructions">None</div></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Items & totals</h3>
+            <div class="kv">
+              <div class="item"><div class="k">Pizza</div><div class="v" id="confPizza">—</div></div>
+              <div class="item"><div class="k">Toppings</div><div class="v" id="confToppings">None</div></div>
+              <div class="item"><div class="k">Quantity</div><div class="v" id="confQty">—</div></div>
+              <div class="item"><div class="k">Extras</div><div class="v" id="confExtras">None</div></div>
+            </div>
+
+            <div class="prices" style="margin-top:12px;">
+              <div class="line muted"><span>Subtotal</span><span id="confSubtotal">$0.00</span></div>
+              <div class="line muted"><span>Delivery fee</span><span id="confDelivery">$0.00</span></div>
+              <div class="line muted"><span>Tax</span><span id="confTax">$0.00</span></div>
+              <div class="line total"><span>Grand total</span><span id="confTotal">$0.00</span></div>
+            </div>
+
+            <div class="actions" style="margin-top:12px;">
+              <button class="primary" id="newOrderBtn" type="button">Start New Order</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="smallnote" style="margin-top: 12px;">
+          This is a front-end-only demo. In a real system, this would submit to a server and return a real order ID.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // ----- Pricing constants -----
+      const PRICES = Object.freeze({
+        base: { Small: 10.00, Medium: 12.00, Large: 14.00 },
+        crustAddon: { "Gluten-free": 2.00 }, // others $0
+        sauceAddon: { Alfredo: 1.00, Pesto: 1.50 }, // Tomato $0
+        cheeseAddon: { Extra: 1.00 }, // Light/Normal $0
+        toppingEach: 0.75,
+        extras: { Breadsticks: 4.00, Soda: 2.00, Salad: 5.00 },
+        deliveryFee: 3.00,
+        taxRate: 0.085
+      });
+
+      // ----- DOM helpers -----
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+      const form = $("#orderForm");
+      const placeOrderBtn = $("#placeOrderBtn");
+      const resetBtn = $("#resetBtn");
+      const validBadge = $("#validBadge");
+
+      const deliveryFields = $("#deliveryFields");
+      const cardFields = $("#cardFields");
+      const cashMessage = $("#cashMessage");
+
+      // Summary elements
+      const sum = {
+        customer: $("#sumCustomer"),
+        orderType: $("#sumOrderType"),
+        pizza: $("#sumPizza"),
+        toppings: $("#sumToppings"),
+        qty: $("#sumQty"),
+        extras: $("#sumExtras"),
+        subtotal: $("#sumSubtotal"),
+        delivery: $("#sumDelivery"),
+        tax: $("#sumTax"),
+        total: $("#sumTotal")
+      };
+
+      // Counters
+      const instCount = $("#instCount");
+      const qtyHint = $("#qtyHint");
+      const toppingCount = $("#toppingCount");
+
+      // Views
+      const formWrap = $("#formWrap");
+      const confirmWrap = $("#confirmWrap");
+
+      // Confirmation elements
+      const conf = {
+        orderNum: $("#confOrderNum"),
+        timestamp: $("#confTimestamp"),
+        customer: $("#confCustomer"),
+        email: $("#confEmail"),
+        phone: $("#confPhone"),
+        orderType: $("#confOrderType"),
+        addressItem: $("#confAddressItem"),
+        address: $("#confAddress"),
+        payment: $("#confPayment"),
+        instructions: $("#confInstructions"),
+
+        pizza: $("#confPizza"),
+        toppings: $("#confToppings"),
+        qty: $("#confQty"),
+        extras: $("#confExtras"),
+
+        subtotal: $("#confSubtotal"),
+        delivery: $("#confDelivery"),
+        tax: $("#confTax"),
+        total: $("#confTotal")
+      };
+
+      const newOrderBtn = $("#newOrderBtn");
+
+      // ----- Parsing/formatting -----
+      const money = (n) => `$${n.toFixed(2)}`;
+
+      const digitsOnly = (s) => (s || "").replace(/[^\d]/g, "");
+
+      function getRadioValue(name) {
+        const el = $(`input[name="${name}"]:checked`, form);
+        return el ? el.value : "";
+      }
+
+      function getCheckedValues(name) {
+        return $$(`input[name="${name}"]:checked`, form).map(i => i.value);
+      }
+
+      function isEmailValid(email) {
+        // Simple, intentionally pragmatic pattern (no server-side validation here).
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
+      }
+
+      function isPhonePlausible(phone) {
+        // Optional field: if provided, allow common formats; require at least 7 digits.
+        const d = digitsOnly(phone);
+        return d.length === 0 || d.length >= 7;
+      }
+
+      function parseQuantity(raw) {
+        const t = (raw || "").trim();
+        if (!/^\d+$/.test(t)) return null;
+        const n = Number(t);
+        if (!Number.isInteger(n) || n < 1 || n > 10) return null;
+        return n;
+      }
+
+      function parseExpiryMMYY(raw) {
+        const t = (raw || "").trim();
+        const m = t.match(/^(\d{2})\s*\/\s*(\d{2})$/);
+        if (!m) return null;
+
+        const mm = Number(m[1]);
+        const yy = Number(m[2]);
+        if (mm < 1 || mm > 12) return null;
+
+        // Convert to a date that represents the *end* of the expiration month.
+        const fullYear = 2000 + yy;
+        const endOfMonth = new Date(fullYear, mm, 0, 23, 59, 59, 999); // day 0 of next month => last day of mm
+        if (Number.isNaN(endOfMonth.getTime())) return null;
+
+        // Not in the past (compare to now).
+        const now = new Date();
+        if (endOfMonth < now) return null;
+
+        return { mm, yy, fullYear, endOfMonth };
+      }
+
+      function computePricing(state) {
+        const base = PRICES.base[state.size] ?? 0;
+
+        const crustAddon = (state.crust === "Gluten-free") ? PRICES.crustAddon["Gluten-free"] : 0;
+        const sauceAddon = PRICES.sauceAddon[state.sauce] ?? 0;
+        const cheeseAddon = PRICES.cheeseAddon[state.cheese] ?? 0;
+
+        const toppingCost = (state.toppings.length * PRICES.toppingEach);
+
+        const pizzaLine = base + crustAddon + sauceAddon + cheeseAddon + toppingCost;
+        const pizzaTotal = pizzaLine * state.quantity;
+
+        const extrasTotal = state.extras.reduce((acc, x) => acc + (PRICES.extras[x] ?? 0), 0);
+
+        const deliveryFee = (state.orderType === "Delivery") ? PRICES.deliveryFee : 0;
+
+        const subtotal = pizzaTotal + extrasTotal;
+        const taxable = subtotal + deliveryFee;
+        const tax = taxable * PRICES.taxRate;
+        const grandTotal = taxable + tax;
+
+        return {
+          base,
+          crustAddon,
+          sauceAddon,
+          cheeseAddon,
+          toppingCost,
+          pizzaLine,
+          pizzaTotal,
+          extrasTotal,
+          subtotal,
+          deliveryFee,
+          tax,
+          grandTotal
+        };
+      }
+
+      // ----- State extraction -----
+      function getState() {
+        const fullName = $("#fullName").value.trim();
+        const email = $("#email").value.trim();
+        const phone = $("#phone").value.trim();
+
+        const orderType = getRadioValue("orderType");
+
+        const street = $("#street").value.trim();
+        const city = $("#city").value.trim();
+        const region = $("#region").value.trim();
+        const postal = $("#postal").value.trim();
+
+        const size = $("#size").value;
+        const crust = getRadioValue("crust");
+        const sauce = getRadioValue("sauce");
+        const cheese = getRadioValue("cheese");
+        const toppings = getCheckedValues("toppings");
+
+        const quantity = parseQuantity($("#quantity").value) ?? 0;
+
+        const extras = getCheckedValues("extras");
+
+        const instructions = $("#instructions").value;
+
+        const payMethod = getRadioValue("payMethod");
+        const cardName = $("#cardName").value.trim();
+        const cardNumberRaw = $("#cardNumber").value;
+        const cardNumberDigits = digitsOnly(cardNumberRaw);
+        const expRaw = $("#exp").value.trim();
+        const cvvRaw = $("#cvv").value.trim();
+
+        return {
+          fullName, email, phone,
+          orderType,
+          street, city, region, postal,
+          size, crust, sauce, cheese,
+          toppings,
+          quantity,
+          extras,
+          instructions,
+          payMethod,
+          cardName, cardNumberRaw, cardNumberDigits, expRaw, cvvRaw
+        };
+      }
+
+      // ----- Conditional UI -----
+      function syncConditionalFields(state) {
+        const isDelivery = state.orderType === "Delivery";
+        deliveryFields.classList.toggle("hidden", !isDelivery);
+
+        const isCard = state.payMethod === "Card";
+        cardFields.classList.toggle("hidden", !isCard);
+        cashMessage.classList.toggle("hidden", state.payMethod !== "Cash");
+      }
+
+      // ----- Validation -----
+      function setFieldValidity(fieldKey, ok) {
+        const field = $(`.field[data-field="${fieldKey}"]`);
+        if (!field) return;
+        field.classList.toggle("invalid", !ok);
+      }
+
+      function validate(state) {
+        let ok = true;
+
+        // Customer
+        const nameOk = state.fullName.length > 0;
+        setFieldValidity("fullName", nameOk); ok = ok && nameOk;
+
+        const emailOk = isEmailValid(state.email);
+        setFieldValidity("email", emailOk); ok = ok && emailOk;
+
+        const phoneOk = isPhonePlausible(state.phone);
+        setFieldValidity("phone", phoneOk); ok = ok && phoneOk;
+
+        const orderTypeOk = state.orderType === "Pickup" || state.orderType === "Delivery";
+        setFieldValidity("orderType", orderTypeOk); ok = ok && orderTypeOk;
+
+        // Delivery address required only if Delivery selected
+        const needsAddress = state.orderType === "Delivery";
+        const streetOk = !needsAddress || state.street.length > 0;
+        const cityOk = !needsAddress || state.city.length > 0;
+        const regionOk = !needsAddress || state.region.length > 0;
+        const postalOk = !needsAddress || state.postal.length > 0;
+
+        setFieldValidity("street", streetOk); ok = ok && streetOk;
+        setFieldValidity("city", cityOk); ok = ok && cityOk;
+        setFieldValidity("region", regionOk); ok = ok && regionOk;
+        setFieldValidity("postal", postalOk); ok = ok && postalOk;
+
+        // Pizza
+        const sizeOk = ["Small", "Medium", "Large"].includes(state.size);
+        setFieldValidity("size", sizeOk); ok = ok && sizeOk;
+
+        const qtyOk = state.quantity >= 1 && state.quantity <= 10;
+        setFieldValidity("quantity", qtyOk); ok = ok && qtyOk;
+
+        const crustOk = ["Thin", "Hand-tossed", "Deep dish", "Gluten-free"].includes(state.crust);
+        setFieldValidity("crust", crustOk); ok = ok && crustOk;
+
+        const sauceOk = ["Tomato", "Alfredo", "Pesto"].includes(state.sauce);
+        setFieldValidity("sauce", sauceOk); ok = ok && sauceOk;
+
+        const cheeseOk = ["Light", "Normal", "Extra"].includes(state.cheese);
+        setFieldValidity("cheese", cheeseOk); ok = ok && cheeseOk;
+
+        // Instructions length (maxlength also enforces, but keep logic explicit)
+        const instOk = (state.instructions || "").length <= 200;
+        setFieldValidity("instructions", instOk); ok = ok && instOk;
+
+        // Payment
+        const payOk = state.payMethod === "Card" || state.payMethod === "Cash";
+        setFieldValidity("payMethod", payOk); ok = ok && payOk;
+
+        if (state.payMethod === "Card") {
+          const cardNameOk = state.cardName.length > 0;
+          setFieldValidity("cardName", cardNameOk); ok = ok && cardNameOk;
+
+          const cardNumberOk = state.cardNumberDigits.length >= 13 && state.cardNumberDigits.length <= 19;
+          setFieldValidity("cardNumber", cardNumberOk); ok = ok && cardNumberOk;
+
+          const expOk = !!parseExpiryMMYY(state.expRaw);
+          setFieldValidity("exp", expOk); ok = ok && expOk;
+
+          const cvvOk = /^\d{3,4}$/.test(state.cvvRaw);
+          setFieldValidity("cvv", cvvOk); ok = ok && cvvOk;
+        } else {
+          // If not Card, treat card fields as valid for UI purposes.
+          setFieldValidity("cardName", true);
+          setFieldValidity("cardNumber", true);
+          setFieldValidity("exp", true);
+          setFieldValidity("cvv", true);
+        }
+
+        return ok;
+      }
+
+      // ----- Rendering (summary + helpers) -----
+      function renderCounters(state) {
+        const len = (state.instructions || "").length;
+        instCount.textContent = `${len}/200`;
+
+        qtyHint.textContent = state.quantity ? `Qty: ${state.quantity}` : "—";
+
+        toppingCount.textContent = `${state.toppings.length} selected`;
+      }
+
+      function renderSummary(state) {
+        sum.customer.textContent = state.fullName || "—";
+        sum.orderType.textContent = state.orderType || "—";
+
+        const pizzaBits = [];
+        if (state.size) pizzaBits.push(state.size);
+        if (state.crust) pizzaBits.push(state.crust);
+        if (state.sauce) pizzaBits.push(`${state.sauce} sauce`);
+        if (state.cheese) pizzaBits.push(`${state.cheese} cheese`);
+        sum.pizza.textContent = pizzaBits.length ? pizzaBits.join(" • ") : "—";
+
+        sum.toppings.textContent = state.toppings.length ? state.toppings.join(", ") : "None";
+        sum.qty.textContent = state.quantity ? String(state.quantity) : "—";
+        sum.extras.textContent = state.extras.length ? state.extras.join(", ") : "None";
+
+        const pricing = computePricing(state);
+        sum.subtotal.textContent = money(pricing.subtotal);
+        sum.delivery.textContent = money(pricing.deliveryFee);
+        sum.tax.textContent = money(pricing.tax);
+        sum.total.textContent = money(pricing.grandTotal);
+      }
+
+      function renderValidityBadge(isValid) {
+        placeOrderBtn.disabled = !isValid;
+        if (isValid) {
+          validBadge.textContent = "Form: ready";
+          validBadge.style.borderColor = "rgba(52,211,153,.45)";
+          validBadge.style.color = "rgba(208,255,235,.95)";
+        } else {
+          validBadge.textContent = "Form: incomplete";
+          validBadge.style.borderColor = "rgba(251,113,133,.35)";
+          validBadge.style.color = "rgba(255,212,220,.95)";
+        }
+      }
+
+      function renderAll() {
+        const state = getState();
+        syncConditionalFields(state);
+        renderCounters(state);
+        renderSummary(state);
+        const isValid = validate(state);
+        renderValidityBadge(isValid);
+      }
+
+      // ----- Confirmation -----
+      function randomOrderNumber() {
+        return String(Math.floor(100000 + Math.random() * 900000));
+      }
+
+      function formatTimestamp(d) {
+        // Local time, readable
+        return d.toLocaleString(undefined, {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+      }
+
+      function showConfirmation(state) {
+        const pricing = computePricing(state);
+
+        conf.orderNum.textContent = randomOrderNumber();
+        conf.timestamp.textContent = formatTimestamp(new Date());
+
+        conf.customer.textContent = state.fullName || "—";
+        conf.email.textContent = state.email || "—";
+        conf.phone.textContent = state.phone || "—";
+        conf.orderType.textContent = state.orderType || "—";
+
+        const isDelivery = state.orderType === "Delivery";
+        conf.addressItem.classList.toggle("hidden", !isDelivery);
+        if (isDelivery) {
+          const addr = [state.street, state.city, state.region, state.postal].filter(Boolean).join(", ");
+          conf.address.textContent = addr || "—";
+        }
+
+        conf.payment.textContent = state.payMethod === "Card" ? "Card (mock)" : (state.payMethod === "Cash" ? "Cash" : "—");
+
+        const inst = (state.instructions || "").trim();
+        conf.instructions.textContent = inst.length ? inst : "None";
+
+        const pizzaBits = [
+          state.size,
+          state.crust,
+          state.sauce ? `${state.sauce} sauce` : "",
+          state.cheese ? `${state.cheese} cheese` : ""
+        ].filter(Boolean);
+
+        conf.pizza.textContent = pizzaBits.length ? pizzaBits.join(" • ") : "—";
+        conf.toppings.textContent = state.toppings.length ? state.toppings.join(", ") : "None";
+        conf.qty.textContent = state.quantity ? String(state.quantity) : "—";
+        conf.extras.textContent = state.extras.length ? state.extras.join(", ") : "None";
+
+        conf.subtotal.textContent = money(pricing.subtotal);
+        conf.delivery.textContent = money(pricing.deliveryFee);
+        conf.tax.textContent = money(pricing.tax);
+        conf.total.textContent = money(pricing.grandTotal);
+
+        formWrap.classList.add("hidden");
+        confirmWrap.classList.add("active");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function resetAll() {
+        form.reset();
+        // Ensure conditional sections are hidden after reset (since radios cleared)
+        deliveryFields.classList.add("hidden");
+        cardFields.classList.add("hidden");
+        cashMessage.classList.add("hidden");
+
+        // Clear invalid styles
+        $$(".field.invalid", form).forEach(f => f.classList.remove("invalid"));
+
+        renderAll();
+      }
+
+      function startNewOrder() {
+        confirmWrap.classList.remove("active");
+        formWrap.classList.remove("hidden");
+        resetAll();
+      }
+
+      // ----- Event wiring -----
+      // Update summary/validation on any input change.
+      ["input", "change", "blur"].forEach(evt => {
+        form.addEventListener(evt, (e) => {
+          // Keep expiry format friendly: allow "MMYY" and auto-insert slash on input
+          if (e.target && e.target.id === "exp" && evt === "input") {
+            const raw = e.target.value.replace(/[^\d]/g, "").slice(0, 4);
+            if (raw.length >= 3) e.target.value = raw.slice(0,2) + "/" + raw.slice(2);
+            else e.target.value = raw;
+          }
+
+          // Limit card number to digits/spaces/dashes while typing (soft guidance)
+          if (e.target && e.target.id === "cardNumber" && evt === "input") {
+            e.target.value = e.target.value.replace(/[^\d -]/g, "").slice(0, 23);
+          }
+
+          // CVV digits only
+          if (e.target && e.target.id === "cvv" && evt === "input") {
+            e.target.value = e.target.value.replace(/[^\d]/g, "").slice(0, 4);
+          }
+
+          // Quantity digits only
+          if (e.target && e.target.id === "quantity" && evt === "input") {
+            e.target.value = e.target.value.replace(/[^\d]/g, "").slice(0, 2);
+          }
+
+          renderAll();
+        });
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault(); // prevent navigation
+
+        const state = getState();
+        syncConditionalFields(state);
+
+        const isValid = validate(state);
+        renderValidityBadge(isValid);
+        renderSummary(state);
+
+        if (!isValid) {
+          // Focus first invalid field for quicker correction.
+          const firstInvalid = $(".field.invalid input, .field.invalid select, .field.invalid textarea", form);
+          if (firstInvalid) firstInvalid.focus();
+          return;
+        }
+
+        // Mock submission: show confirmation in-page.
+        showConfirmation(state);
+      });
+
+      resetBtn.addEventListener("click", () => resetAll());
+      newOrderBtn.addEventListener("click", () => startNewOrder());
+
+      // Initial render
+      resetAll();
+    })();
+  </script>
+</body>
+</html>

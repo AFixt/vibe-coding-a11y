@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pizza Order Form</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    /* ---- Layout --------------------------------------------------- */
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0 1rem;
+        background: #f9f9f9;
+        color: #333;
+    }
+    header, footer {
+        text-align: center;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+    }
+    main {
+        max-width: 800px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    }
+    .section {
+        margin-bottom: 2rem;
+        border: 1px solid #e0e0e0;
+        padding: 1rem;
+        border-radius: 6px;
+    }
+    .section h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+        color: #2c3e50;
+    }
+
+    /* ---- Form elements ------------------------------------------- */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: .5rem;
+    }
+    .col {
+        flex: 1 1 200px;
+    }
+    label {
+        display: block;
+        margin-bottom: .25rem;
+        font-weight: 500;
+    }
+    input, select, textarea {
+        width: 100%;
+        padding: .5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52,152,219,.2);
+    }
+    .error {
+        color: #e74c3c;
+        font-size: .85rem;
+        margin-top: .2rem;
+        display: none;
+    }
+    .error.show {
+        display: block;
+    }
+
+    /* ---- Conditional fields -------------------------------------- */
+    .delivery-fields {
+        display: none;
+        margin-top: .5rem;
+    }
+
+    /* ---- Toppings ------------------------------------------------ */
+    .toppings-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+    .toppings-group input[type="checkbox"] {
+        width: auto;
+        margin-right: .25rem;
+    }
+    .toppings-group label {
+        display: inline-block;
+        margin: 0;
+        font-weight: normal;
+    }
+
+    /* ---- Summary panel ------------------------------------------- */
+    #summary {
+        background: #f1f8ff;
+        border: 1px solid #c0d6eb;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-top: 2rem;
+    }
+    #summary h3 {
+        margin-top: 0;
+    }
+    #summary dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: .25rem .5rem;
+    }
+    #summary dt {
+        font-weight: 500;
+    }
+    #summary dd {
+        font-weight: normal;
+    }
+    #summary .total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: .5rem;
+    }
+
+    /* ---- Confirmation view --------------------------------------- */
+    #confirmation {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    #confirmation h2 {
+        margin-bottom: .5rem;
+    }
+    #confirmation p {
+        margin-bottom: 1rem;
+    }
+    #confirmation button {
+        padding: .75rem 1.5rem;
+        background: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    #confirmation button:hover {
+        background: #2980b9;
+    }
+
+    /* ---- Buttons ------------------------------------------------- */
+    #placeOrder {
+        margin-top: 1.5rem;
+        padding: .75rem 2rem;
+        background: #27ae60;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        display: block;
+        width: 100%;
+    }
+    #placeOrder:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+    #placeOrder:hover:not(:disabled) {
+        background: #219653;
+    }
+
+    /* ---- Responsive tweaks --------------------------------------- */
+    @media (max-width: 600px) {
+        .row {
+            flex-direction: column;
+        }
+        .col {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🍕 Pizza Order Form</h1>
+</header>
+
+<main id="orderFormView">
+    <!-- 1️⃣ Customer Info -->
+    <section class="section" id="customerInfo">
+        <h2>👤 Customer Information</h2>
+        <div class="row">
+            <div class="col">
+                <label for="fullName">Full Name <span class="required">*</span></label>
+                <input type="text" id="fullName" required>
+                <div class="error" id="errFullName"></div>
+            </div>
+            <div class="col">
+                <label for="email">Email <span class="required">*</span></label>
+                <input type="email" id="email" required>
+                <div class="error" id="errEmail"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label for="phone">Phone (optional)</label>
+                <input type="tel" id="phone">
+                <div class="error" id="errPhone"></div>
+            </div>
+            <div class="col">
+                <label for="orderType">Order Type <span class="required">*</span></label>
+                <select id="orderType" required>
+                    <option value="">Select…</option>
+                    <option value="pickup">Pickup</option>
+                    <option value="delivery">Delivery</option>
+                </select>
+                <div class="error" id="errOrderType"></div>
+            </div>
+        </div>
+
+        <div class="delivery-fields" id="deliveryFields">
+            <h3>📍 Delivery Address</h3>
+            <div class="row">
+                <div class="col"><input type="text" id="street" placeholder="Street" required></div>
+            </div>
+            <div class="row">
+                <div class="col"><input type="text" id="city" placeholder="City" required></div>
+                <div class="col"><input type="text" id="state" placeholder="State/Region" required></div>
+                <div class="col"><input type="text" id="postal" placeholder="Postal Code" required></div>
+            </div>
+            <div class="error" id="errDelivery"></div>
+        </div>
+    </section>
+
+    <!-- 2️⃣ Pizza Builder -->
+    <section class="section" id="pizzaBuilder">
+        <h2>🍕 Build Your Pizza</h2>
+        <div class="row">
+            <div class="col">
+                <label for="size">Size <span class="required">*</span></label>
+                <select id="size" required>
+                    <option value="">Select…</option>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                </select>
+                <div class="error" id="errSize"></div>
+            </div>
+            <div class="col">
+                <label for="crust">Crust <span class="required">*</span></label>
+                <select id="crust" required>
+                    <option value="">Select…</option>
+                    <option value="thin">Thin</option>
+                    <option value="hand-tossed">Hand‑tossed</option>
+                    <option value="deep-dish">Deep dish</option>
+                    <option value="gluten-free">Gluten‑free (+$2.00)</option>
+                </select>
+                <div class="error" id="errCrust"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="sauce">Sauce <span class="required">*</span></label>
+                <select id="sauce" required>
+                    <option value="">Select…</option>
+                    <option value="tomato">Tomato</option>
+                    <option value="alfredo">Alfredo (+$1.00)</option>
+                    <option value="pesto">Pesto (+$1.50)</option>
+                </select>
+                <div class="error" id="errSauce"></div>
+            </div>
+            <div class="col">
+                <label for="cheese">Cheese Level <span class="required">*</span></label>
+                <select id="cheese" required>
+                    <option value="">Select…</option>
+                    <option value="light">Light</option>
+                    <option value="normal">Normal</option>
+                    <option value="extra">Extra (+$1.00)</option>
+                </select>
+                <div class="error" id="errCheese"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>Toppings (each +$0.75)</label>
+                <div class="toppings-group" id="toppingsGroup">
+                    <label><input type="checkbox" name="topping" value="pepperoni"> Pepperoni</label>
+                    <label><input type="checkbox" name="topping" value="sausage"> Sausage</label>
+                    <label><input type="checkbox" name="topping" value="mushrooms"> Mushrooms</label>
+                    <label><input type="checkbox" name="topping" value="onions"> Onions</label>
+                    <label><input type="checkbox" name="topping" value="green-peppers"> Green peppers</label>
+                    <label><input type="checkbox" name="topping" value="olives"> Olives</label>
+                    <label><input type="checkbox" name="topping" value="pineapple"> Pineapple</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="quantity">Quantity <span class="required">*</span></label>
+                <input type="number" id="quantity" min="1" max="10" value="1" required>
+                <div class="error" id="errQuantity"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3️⃣ Extras -->
+    <section class="section" id="extras">
+        <h2>🥗 Extras</h2>
+        <div class="row">
+            <div class="col">
+                <label><input type="checkbox" id="breadsticks"> Breadsticks (+$4.00)</label>
+            </div>
+            <div class="col">
+                <label><input type="checkbox" id="soda"> Soda (+$2.00)</label>
+            </div>
+            <div class="col">
+                <label><input type="checkbox" id="salad"> Salad (+$5.00)</label>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4️⃣ Special Instructions -->
+    <section class="section" id="specialInstructions">
+        <h2>📝 Special Instructions</h2>
+        <textarea id="instructions" placeholder="Maximum 200 characters" maxlength="200"></textarea>
+        <p id="charCounter"><span id="charCount">0</span>/200</p>
+    </section>
+
+    <!-- 5️⃣ Payment -->
+    <section class="section" id="payment">
+        <h2>💳 Payment Method</h2>
+        <div class="row">
+            <div class="col">
+                <label><input type="radio" name="payment" value="card" id="payCard" required> Card</label>
+                <div id="cardFields" style="display:none;">
+                    <div class="row">
+                        <div class="col"><input type="text" id="cardName" placeholder="Name on card" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><input type="text" id="cardNumber" placeholder="Card number" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><input type="text" id="exp" placeholder="MM/YY" required></div>
+                        <div class="col"><input type="text" id="cvv" placeholder="CVV" required></div>
+                    </div>
+                    <div class="error" id="errCard"></div>
+                </div>
+                <label><input type="radio" name="payment" value="cash" id="payCash" required> Cash</label>
+                <div id="cashMessage" style="display:none;">
+                    <p>Cash on delivery/pickup</p>
+                </div>
+                <div class="error" id="errPayment"></div>
+            </div>
+        </div>
+    </section>
+
+    <button id="placeOrder" disabled>Place Order</button>
+
+    <!-- Order Summary Panel -->
+    <section id="summary">
+        <h3>📋 Order Summary</h3>
+        <dl id="summaryDetails"></dl>
+        <div class="total"><strong>Grand Total: <span id="grandTotal">$0.00</span></strong></div>
+    </section>
+</main>
+
+<!-- Confirmation View (hidden initially) -->
+<section id="confirmation" hidden>
+    <h2>✅ Order Confirmed!</h2>
+    <p><strong>Order #</strong><span id="confOrderNumber"></span></p>
+    <p><strong>Date/Time:</strong><span id="confTimestamp"></span></p>
+    <hr>
+    <div id="confSummary"></div>
+    <button id="newOrderBtn">Start New Order</button>
+</section>
+
+<script>
+/* --------------------------------------------------------------
+   Utility functions
+   -------------------------------------------------------------- */
+function formatCurrency(num) {
+    return '$' + num.toFixed(2);
+}
+function randomOrderNumber() {
+    // 6‑digit random number, leading zeros allowed
+    return Math.floor(Math.random() * 1_000_000).toString().padStart(6, '0');
+}
+function nowLocalString() {
+    const d = new Date();
+    return d.toLocaleString();
+}
+
+/* --------------------------------------------------------------
+   Pricing constants
+   -------------------------------------------------------------- */
+const BASE_PRICES = { small: 10, medium: 12, large: 14 };
+const CRUST_PREMIUMS = { 'gluten-free': 2 };
+const SAUCE_PREMIUMS = { alfredo: 1, pesto: 1.5 };
+const CHEESE_PREMIUMS = { extra: 1 };
+const TOPPING_COST = 0.75;
+const EXTRA_COSTS = {
+    breadsticks: 4,
+    soda: 2,
+    salad: 5
+};
+const DELIVERY_FEE = 3;
+const TAX_RATE = 0.085;
+
+/* --------------------------------------------------------------
+   State handling – keep everything in plain objects
+   -------------------------------------------------------------- */
+const formState = {
+    // Customer
+    fullName: '',
+    email: '',
+    phone: '',
+    orderType: '',
+    // Delivery fields
+    street: '',
+    city: '',
+    state: '',
+    postal: '',
+    // Pizza
+    size: '',
+    crust: '',
+    sauce: '',
+    cheese: '',
+    toppings: [],
+    quantity: 1,
+    // Extras
+    breadsticks: false,
+    soda: false,
+    salad: false,
+    // Instructions
+    instructions: '',
+    // Payment
+    paymentMethod: '',
+    cardName: '',
+    cardNumber: '',
+    exp: '',
+    cvv: ''
+};
+
+/* --------------------------------------------------------------
+   Validation helpers
+   -------------------------------------------------------------- */
+function validateRequired(id, value) {
+    const errEl = document.getElementById('err' + id.charAt(0).toUpperCase() + id.slice(1));
+    if (!value) {
+        errEl.classList.add('show');
+        return false;
+    }
+    errEl.classList.remove('show');
+    return true;
+}
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errEl = document.getElementById('errEmail');
+    if (!re.test(email)) {
+        errEl.textContent = 'Enter a valid email address';
+        errEl.classList.add('show');
+        return false;
+    }
+    errEl.classList.remove('show');
+    return true;
+}
+function validateCardNumber(num) {
+    // Simple length check – real Luhn would be overkill for mock
+    const cleaned = num.replace(/[\s-]/g, '');
+    const errEl = document.getElementById('errCard');
+    if (!/^\d{13,19}$/.test(cleaned)) {
+        errEl.textContent = 'Card number must be 13‑19 digits';
+        errEl.classList.add('show');
+        return false;
+    }
+    errEl.classList.remove('show');
+    return true;
+}
+function validateExp(exp) {
+    const errEl = document.getElementById('errCard');
+    const now = new Date();
+    const [mm, yy] = exp.split('/').map(s => parseInt(s, 10));
+    const year = 2000 + yy;
+    const month = mm - 1; // months 0‑11
+    const date = new Date(year, month, 1);
+    if (!date.getMonth() === month) {
+        // month out of range
+        errEl.textContent = 'Invalid expiration month';
+        errEl.classList.add('show');
+        return false;
+    }
+    if (date < now) {
+        errEl.textContent = 'Card has expired';
+        errEl.classList.add('show');
+        return false;
+    }
+    errEl.classList.remove('show');
+    return true;
+}
+function validateCVV(cvv) {
+    const errEl = document.getElementById('errCard');
+    if (!/^\d{3,4}$/.test(cvv)) {
+        errEl.textContent = 'CVV must be 3‑4 digits';
+        errEl.classList.add('show');
+        return false;
+    }
+    errEl.classList.remove('show');
+    return true;
+}
+function validateDeliveryFields() {
+    const fields = ['street', 'city', 'state', 'postal'];
+    const allValid = fields.every(id => validateRequired(id, formState[id]));
+    const errEl = document.getElementById('errDelivery');
+    if (!allValid) {
+        errEl.textContent = 'All delivery fields are required';
+        errEl.classList.add('show');
+    } else {
+        errEl.classList.remove('show');
+    }
+    return allValid;
+}
+
+/* --------------------------------------------------------------
+   UI update helpers
+   -------------------------------------------------------------- */
+function updateDeliveryVisibility() {
+    const deliveryFields = document.getElementById('deliveryFields');
+    const isDelivery = formState.orderType === 'delivery';
+    deliveryFields.style.display = isDelivery ? 'block' : 'none';
+    // Reset fields when switching back to pickup
+    if (!isDelivery) {
+        formState.street = '';
+        formState.city = '';
+        formState.state = '';
+        formState.postal = '';
+    }
+}
+function updateCardFields() {
+    const cardFields = document.getElementById('cardFields');
+    const cashMessage = document.getElementById('cashMessage');
+    if (formState.paymentMethod === 'card') {
+        cardFields.style.display = 'block';
+        cashMessage.style.display = 'none';
+    } else if (formState.paymentMethod === 'cash') {
+        cardFields.style.display = 'none';
+        cashMessage.style.display = 'block';
+    } else {
+        cardFields.style.display = 'none';
+        cashMessage.style.display = 'none';
+    }
+}
+function updateCharCounter() {
+    const txt = document.getElementById('instructions').value;
+    const count = txt.length;
+    document.getElementById('charCount').textContent = count;
+}
+function enablePlaceOrder() {
+    const btn = document.getElementById('placeOrder');
+    btn.disabled = !isFormValid();
+}
+function isFormValid() {
+    // All required fields + conditional logic + payment validation
+    const requiredIds = [
+        'fullName', 'email', 'orderType', 'size', 'crust', 'sauce', 'cheese', 'quantity'
+    ];
+    const allRequired = requiredIds.every(id => validateRequired(id, formState[id]));
+    if (!allRequired) return false;
+
+    // Email format
+    if (!validateEmail(formState.email)) return false;
+
+    // Delivery fields if needed
+    if (formState.orderType === 'delivery' && !validateDeliveryFields()) return false;
+
+    // Payment method selected?
+    if (!formState.paymentMethod) return false;
+    if (formState.paymentMethod === 'card') {
+        if (!formState.cardName) return false;
+        if (!validateCardNumber(formState.cardNumber)) return false;
+        if (!validateExp(formState.exp)) return false;
+        if (!validateCVV(formState.cvv)) return false;
+    }
+
+    // Quantity in range
+    if (formState.quantity < 1 || formState.quantity > 10) return false;
+
+    return true;
+}
+
+/* --------------------------------------------------------------
+   Pricing & Summary rendering
+   -------------------------------------------------------------- */
+function calculatePizzaLinePrice() {
+    let price = BASE_PRICES[formState.size];
+    // crust premium
+    if (CRUST_PREMIUMS[formState.crust]) price += CRUST_PREMIUMS[formState.crust];
+    // sauce premium
+    if (SAUCE_PREMIUMS[formState.sauce]) price += SAUCE_PREMIUMS[formState.sauce];
+    // cheese premium
+    if (CHEESE_PREMIUMS[formState.cheese]) price += CHEESE_PREMIUMS[formState.cheese];
+    // toppings
+    price += formState.toppings.length * TOPPING_COST;
+    return price;
+}
+function calculateExtrasCost() {
+    let cost = 0;
+    if (formState.breadsticks) cost += EXTRA_COSTS.breadsticks;
+    if (formState.soda) cost += EXTRA_COSTS.soda;
+    if (formState.salad) cost += EXTRA_COSTS.salad;
+    return cost;
+}
+function calculateDeliveryFee() {
+    return formState.orderType === 'delivery' ? DELIVERY_FEE : 0;
+}
+function calculateTax(subtotal) {
+    return subtotal * TAX_RATE;
+}
+function computeSummary() {
+    const pizzaLine = calculatePizzaLinePrice();
+    const pizzaTotal = pizzaLine * formState.quantity;
+    const extrasTotal = calculateExtrasCost();
+    const deliveryFee = calculateDeliveryFee();
+    const subtotal = pizzaTotal + extrasTotal + deliveryFee;
+    const tax = calculateTax(subtotal);
+    const grandTotal = subtotal + tax;
+
+    // Build the textual summary
+    const summaryEl = document.getElementById('summaryDetails');
+    const rows = [];
+
+    rows.push(`<dt>Customer name</dt><dd>${formState.fullName || '—'}</dd>`);
+    rows.push(`<dt>Order type</dt><dd>${formState.orderType === 'pickup' ? 'Pickup' : 'Delivery'}</dd>`);
+
+    rows.push(`<dt>Pizza</dt>
+               <dd>${formState.size} ${formState.crust}${formState.crust === 'gluten-free' ? ' (+$2.00)' : ''}<br>
+                         ${formState.sauce}${SAUCE_PREMIUMS[formState.sauce] ? ` (+$${SAUCE_PREMIUMS[formState.sauce]})` : ''}<br>
+                         ${formState.cheese}${CHEESE_PREMIUMS[formState.cheese] ? ` (+$${CHEESE_PREMIUMS[formState.cheese]})` : ''}</dd>`);
+
+    rows.push(`<dt>Toppings</dt><dd>${formState.toppings.length ? formState.toppings.join(', ') : 'None'}</dd>`);
+    rows.push(`<dt>Quantity</dt><dd>${formState.quantity}</dd>`);
+
+    rows.push(`<dt>Extras</dt><dd>${[formState.breadsticks ? 'Breadsticks' : null,
+                                    formState.soda ? 'Soda' : null,
+                                    formState.salad ? 'Salad' : null].filter(Boolean).join(', ') || 'None'}</dd>`);
+
+    rows.push(`<dt>Pizza line price</dt><dd>${formatCurrency(pizzaLine)}</dd>`);
+    rows.push(`<dt>Pizza subtotal</dt><dd>${formatCurrency(pizzaTotal)}</dd>`);
+    rows.push(`<dt>Extras</dt><dd>${formatCurrency(extrasTotal)}</dd>`);
+    rows.push(`<dt>Delivery fee</dt><dd>${formatCurrency(deliveryFee)}</dd>`);
+    rows.push(`<dt>Subtotal</dt><dd>${formatCurrency(subtotal)}</dd>`);
+    rows.push(`<dt>Tax (8.5%)</dt><dd>${formatCurrency(tax)}</dd>`);
+    rows.push(`<dt>Grand total</dt><dd>${formatCurrency(grandTotal)}</dd>`);
+
+    summaryEl.innerHTML = rows.join('');
+    document.getElementById('grandTotal').textContent = formatCurrency(grandTotal);
+}
+
+/* --------------------------------------------------------------
+   Submit handling
+   -------------------------------------------------------------- */
+function handleSubmit(e) {
+    e.preventDefault(); // stop page reload
+    if (!isFormValid()) {
+        alert('Please correct the highlighted fields before submitting.');
+        return;
+    }
+
+    // Hide the form and show the confirmation view
+    document.getElementById('orderFormView').style.display = 'none';
+    const conf = document.getElementById('confirmation');
+    conf.hidden = false;
+
+    // Populate confirmation details
+    const orderNumber = randomOrderNumber();
+    const timestamp = nowLocalString();
+    document.getElementById('confOrderNumber').textContent = orderNumber;
+    document.getElementById('confTimestamp').textContent = timestamp;
+
+    // Re‑render the summary (without price details) for the confirmation screen
+    const confSummary = document.getElementById('confSummary');
+    const summary = document.getElementById('summaryDetails').innerHTML;
+    confSummary.innerHTML = `<h3>Your Order</h3><dl>${summary}</dl>`;
+}
+
+/* --------------------------------------------------------------
+   Event listeners – keep UI in sync with formState
+   -------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+    // ----- Customer Info -----
+    document.getElementById('fullName').addEventListener('input', e => {
+        formState.fullName = e.target.value;
+        validateRequired('fullName', formState.fullName);
+        enablePlaceOrder();
+    });
+    document.getElementById('email').addEventListener('input', e => {
+        formState.email = e.target.value;
+        validateRequired('email', formState.email) && validateEmail(formState.email);
+        enablePlaceOrder();
+    });
+    document.getElementById('phone').addEventListener('input', e => {
+        formState.phone = e.target.value;
+    });
+    document.getElementById('orderType').addEventListener('change', e => {
+        formState.orderType = e.target.value;
+        updateDeliveryVisibility();
+        validateRequired('orderType', formState.orderType);
+        enablePlaceOrder();
+    });
+
+    // Delivery fields
+    const deliveryInputs = ['street', 'city', 'state', 'postal'];
+    deliveryInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', e => {
+            formState[id] = e.target.value;
+            if (formState.orderType === 'delivery') {
+                validateRequired(id, formState[id]);
+            }
+            enablePlaceOrder();
+        });
+    });
+
+    // ----- Pizza Builder -----
+    document.getElementById('size').addEventListener('change', e => {
+        formState.size = e.target.value;
+        validateRequired('size', formState.size);
+        computeSummary();
+        enablePlaceOrder();
+    });
+    document.getElementById('crust').addEventListener('change', e => {
+        formState.crust = e.target.value;
+        computeSummary();
+        enablePlaceOrder();
+    });
+    document.getElementById('sauce').addEventListener('change', e => {
+        formState.sauce = e.target.value;
+        computeSummary();
+        enablePlaceOrder();
+    });
+    document.getElementById('cheese').addEventListener('change', e => {
+        formState.cheese = e.target.value;
+        computeSummary();
+        enablePlaceOrder();
+    });
+
+    // Toppings – capture checkboxes
+    const toppingChecks = document.querySelectorAll('#toppingsGroup input[name="topping"]');
+    toppingChecks.forEach(chk => {
+        chk.addEventListener('change', e => {
+            const val = e.target.value;
+            if (e.target.checked) {
+                if (!formState.toppings.includes(val)) formState.toppings.push(val);
+            } else {
+                formState.toppings = formState.toppings.filter(t => t !== val);
+            }
+            computeSummary();
+            enablePlaceOrder();
+        });
+    });
+
+    document.getElementById('quantity').addEventListener('input', e => {
+        const q = parseInt(e.target.value, 10) || 1;
+        formState.quantity = Math.min(Math.max(q, 1), 10);
+        e.target.value = formState.quantity;
+        validateRequired('quantity', formState.quantity > 0);
+        computeSummary();
+        enablePlaceOrder();
+    });
+
+    // ----- Extras -----
+    document.getElementById('breadsticks').addEventListener('change', e => {
+        formState.breadsticks = e.target.checked;
+        computeSummary();
+        enablePlaceOrder();
+    });
+    document.getElementById('soda').addEventListener('change', e => {
+        formState.soda = e.target.checked;
+        computeSummary();
+        enablePlaceOrder();
+    });
+    document.getElementById('salad').addEventListener('change', e => {
+        formState.salad = e.target.checked;
+        computeSummary();
+        enablePlaceOrder();
+    });
+
+    // ----- Special Instructions -----
+    document.getElementById('instructions').addEventListener('input', e => {
+        formState.instructions = e.target.value;
+        updateCharCounter();
+    });
+
+    // ----- Payment -----
+    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', e => {
+            formState.paymentMethod = e.target.value;
+            updateCardFields();
+            validateRequired('paymentMethod', formState.paymentMethod);
+            enablePlaceOrder();
+        });
+    });
+
+    // Card fields
+    document.getElementById('cardName').addEventListener('input', e => {
+        formState.cardName = e.target.value;
+        if (formState.paymentMethod === 'card') enablePlaceOrder();
+    });
+    document.getElementById('cardNumber').addEventListener('input', e => {
+        const val = e.target.value;
+        formState.cardNumber = val;
+        if (formState.paymentMethod === 'card') {
+            validateCardNumber(val);
+            enablePlaceOrder();
+        }
+    });
+    document.getElementById('exp').addEventListener('input', e => {
+        const val = e.target.value;
+        formState.exp = val;
+        if (formState.paymentMethod === 'card') {
+            validateExp(val);
+            enablePlaceOrder();
+        }
+    });
+    document.getElementById('cvv').addEventListener('input', e => {
+        const val = e.target.value;
+        formState.cvv = val;
+        if (formState.paymentMethod === 'card') {
+            validateCVV(val);
+            enablePlaceOrder();
+        }
+    });
+
+    // Initial UI state
+    updateDeliveryVisibility();
+    updateCardFields();
+    computeSummary();
+    enablePlaceOrder();
+});
+
+/* --------------------------------------------------------------
+   "Start New Order" button – reset everything
+   -------------------------------------------------------------- */
+document.getElementById('newOrderBtn').addEventListener('click', () => {
+    // Reset formState to empty defaults
+    Object.keys = {
+        fullName: '',
+        email: '',
+        phone: '',
+        orderType: '',
+        street: '',
+        city: '',
+        state: '',
+        postal: '',
+        size: '',
+        crust: '',
+        sauce: '',
+        cheese: '',
+        toppings: [],
+        quantity: 1,
+        breadsticks: false,
+        soda: false,
+        salad: false,
+        instructions: '',
+        paymentMethod: '',
+        cardName: '',
+        cardNumber: '',
+        exp: '',
+        cvv: ''
+    };
+    // Reset UI values
+    document.getElementById('orderFormView').style.display = 'block';
+    document.getElementById('confirmation').hidden = true;
+    // Reset form fields (clear inputs, unchecked boxes, reset radios)
+    const form = document.querySelector('form'); // the whole page acts as a form
+    if (form) form.reset();
+    // Reset character counter
+    document.getElementById('charCount').textContent = '0';
+    // Re‑initialize UI state
+    updateDeliveryVisibility();
+    updateCardFields();
+    computeSummary();
+    enablePlaceOrder();
+});
+
+/* --------------------------------------------------------------
+   Attach submit handler to the hidden <form> wrapper
+   -------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+    const formWrapper = document.getElementById('orderFormView');
+    // Wrap the whole view in a <form> so we can attach a submit listener
+    const realForm = document.createElement('form');
+    realForm.style.display = 'contents';
+    while (formWrapper.firstChild) realForm.appendChild(formWrapper.firstChild);
+    formWrapper.appendChild(realForm);
+    realForm.addEventListener('submit', handleSubmit);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza Order Form</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ===== Layout ===== */
+.page-header {
+  background: #b71c1c;
+  color: #fff;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+.page-header h1 { font-size: 1.75rem; }
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  .summary-panel { order: -1; }
+}
+
+/* ===== Cards / Sections ===== */
+.form-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-section legend,
+.form-section > h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #b71c1c;
+}
+
+fieldset {
+  border: none;
+}
+
+/* ===== Form Controls ===== */
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 0 3px rgba(21,101,192,0.25);
+}
+
+textarea { resize: vertical; }
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 500px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ===== Radio / Checkbox Groups ===== */
+.radio-group, .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.radio-group label, .checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.radio-group input, .checkbox-group input {
+  width: 1.1em;
+  height: 1.1em;
+  accent-color: #b71c1c;
+}
+
+/* ===== Error Styling ===== */
+.field-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+  display: none;
+}
+.field-error::before {
+  content: "⚠ ";
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #c62828;
+  background: #fff5f5;
+}
+
+/* Error summary at top */
+.error-summary {
+  background: #ffebee;
+  border: 2px solid #c62828;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: none;
+}
+.error-summary h2 {
+  color: #c62828;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+.error-summary ul {
+  list-style: none;
+  padding: 0;
+}
+.error-summary a {
+  color: #c62828;
+  text-decoration: underline;
+}
+.error-summary li {
+  margin-bottom: 0.25rem;
+}
+.error-summary li::before {
+  content: "• ";
+}
+
+/* ===== Hidden sections (delivery / card) ===== */
+.conditional-section {
+  display: none;
+}
+.conditional-section.visible {
+  display: block;
+}
+
+/* ===== Summary Panel ===== */
+.summary-panel {
+  position: sticky;
+  top: 1rem;
+}
+.summary-panel .form-section {
+  border-left: 4px solid #b71c1c;
+}
+.summary-panel h2 {
+  font-size: 1.15rem;
+  color: #b71c1c;
+  margin-bottom: 0.75rem;
+}
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.92rem;
+}
+.summary-item.total {
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-top: 2px solid #b71c1c;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+.summary-label { color: #555; }
+.summary-detail { margin-bottom: 0.5rem; font-size: 0.92rem; }
+.summary-detail strong { color: #333; }
+
+hr.summary-hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 0.5rem 0;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-block;
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.btn:focus-visible {
+  outline: 3px solid #1565c0;
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: #b71c1c;
+  color: #fff;
+}
+.btn-primary:hover { background: #8e0000; }
+
+.btn-secondary {
+  background: #fff;
+  color: #b71c1c;
+  border: 2px solid #b71c1c;
+}
+.btn-secondary:hover { background: #ffebee; }
+
+.btn-row {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ===== Char counter ===== */
+.char-counter {
+  text-align: right;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+/* ===== Quantity ===== */
+#quantity {
+  width: 80px;
+}
+
+/* ===== Confirmation View ===== */
+.confirmation-view {
+  display: none;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.confirmation-view .form-section { text-align: left; }
+.confirmation-view h2 {
+  color: #2e7d32;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.confirmation-view .order-meta {
+  color: #555;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+.confirmation-view table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.confirmation-view th, .confirmation-view td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.93rem;
+}
+.confirmation-view th { font-weight: 600; color: #555; }
+.confirmation-view .price-col { text-align: right; }
+
+/* ===== Skip link ===== */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #1565c0;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 1000;
+  font-size: 1rem;
+  border-radius: 0 0 4px 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* ===== Focus indicator ===== */
+a:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 3px solid #1565c0;
+  outline-offset: 2px;
+}
+
+/* ===== Visually hidden (sr-only) ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Skip navigation link -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<header class="page-header">
+  <h1>🍕 Pizza Order</h1>
+</header>
+
+<main id="main-content">
+
+<!-- ========== FORM VIEW ========== -->
+<div id="form-view" class="container">
+<div class="form-col">
+
+  <!-- Error summary (shown on submit with errors) -->
+  <div id="error-summary" class="error-summary" role="alert" tabindex="-1">
+    <h2>Please fix the following errors:</h2>
+    <ul id="error-summary-list"></ul>
+  </div>
+
+  <form id="pizza-form" novalidate>
+
+    <!-- ===== 1. Customer Info ===== -->
+    <fieldset class="form-section">
+      <legend>Customer Information</legend>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="full-name">Full Name <span aria-hidden="true">*</span></label>
+          <input type="text" id="full-name" name="fullName" required autocomplete="name"
+                 aria-required="true" aria-describedby="full-name-error">
+          <div id="full-name-error" class="field-error">Full name is required.</div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email <span aria-hidden="true">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email"
+                 aria-required="true" aria-describedby="email-error">
+          <div id="email-error" class="field-error">Please enter a valid email address.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone <span class="sr-only">(optional)</span></label>
+        <input type="tel" id="phone" name="phone" autocomplete="tel">
+      </div>
+
+      <div class="form-group">
+        <label id="order-type-label">Order Type <span aria-hidden="true">*</span></label>
+        <div class="radio-group" role="radiogroup" aria-labelledby="order-type-label" aria-required="true">
+          <label><input type="radio" name="orderType" value="Pickup" checked> Pickup</label>
+          <label><input type="radio" name="orderType" value="Delivery"> Delivery</label>
+        </div>
+        <div id="order-type-error" class="field-error">Please select an order type.</div>
+      </div>
+
+      <!-- Delivery address (conditional) -->
+      <div id="delivery-section" class="conditional-section" aria-label="Delivery address">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="street">Street <span aria-hidden="true">*</span></label>
+            <input type="text" id="street" name="street" autocomplete="street-address"
+                   aria-describedby="street-error">
+            <div id="street-error" class="field-error">Street address is required for delivery.</div>
+          </div>
+          <div class="form-group">
+            <label for="city">City <span aria-hidden="true">*</span></label>
+            <input type="text" id="city" name="city" autocomplete="address-level2"
+                   aria-describedby="city-error">
+            <div id="city-error" class="field-error">City is required for delivery.</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="state">State/Region <span aria-hidden="true">*</span></label>
+            <input type="text" id="state" name="state" autocomplete="address-level1"
+                   aria-describedby="state-error">
+            <div id="state-error" class="field-error">State/Region is required for delivery.</div>
+          </div>
+          <div class="form-group">
+            <label for="postal">Postal Code <span aria-hidden="true">*</span></label>
+            <input type="text" id="postal" name="postal" autocomplete="postal-code"
+                   aria-describedby="postal-error">
+            <div id="postal-error" class="field-error">Postal code is required for delivery.</div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ===== 2. Pizza Builder ===== -->
+    <fieldset class="form-section">
+      <legend>Build Your Pizza</legend>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="size">Size <span aria-hidden="true">*</span></label>
+          <select id="size" name="size" required aria-required="true" aria-describedby="size-error">
+            <option value="Small">Small – $10.00</option>
+            <option value="Medium" selected>Medium – $12.00</option>
+            <option value="Large">Large – $14.00</option>
+          </select>
+          <div id="size-error" class="field-error">Please select a pizza size.</div>
+        </div>
+        <div class="form-group">
+          <label for="crust">Crust <span aria-hidden="true">*</span></label>
+          <select id="crust" name="crust" required aria-required="true" aria-describedby="crust-error">
+            <option value="Thin">Thin</option>
+            <option value="Hand-tossed" selected>Hand-tossed</option>
+            <option value="Deep dish">Deep dish</option>
+            <option value="Gluten-free">Gluten-free (+$2.00)</option>
+          </select>
+          <div id="crust-error" class="field-error">Please select a crust type.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sauce">Sauce <span aria-hidden="true">*</span></label>
+          <select id="sauce" name="sauce" required aria-required="true" aria-describedby="sauce-error">
+            <option value="Tomato" selected>Tomato</option>
+            <option value="Alfredo">Alfredo (+$1.00)</option>
+            <option value="Pesto">Pesto (+$1.50)</option>
+          </select>
+          <div id="sauce-error" class="field-error">Please select a sauce.</div>
+        </div>
+        <div class="form-group">
+          <label for="cheese">Cheese Level <span aria-hidden="true">*</span></label>
+          <select id="cheese" name="cheese" required aria-required="true" aria-describedby="cheese-error">
+            <option value="Light">Light</option>
+            <option value="Normal" selected>Normal</option>
+            <option value="Extra">Extra (+$1.00)</option>
+          </select>
+          <div id="cheese-error" class="field-error">Please select a cheese level.</div>
+        </div>
+      </div>
+
+      <!-- Toppings -->
+      <div class="form-group">
+        <fieldset>
+          <legend style="font-weight:600; font-size:0.95rem; margin-bottom:0.25rem;">Toppings (+$0.75 each)</legend>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="toppings" value="Pepperoni"> Pepperoni</label>
+            <label><input type="checkbox" name="toppings" value="Sausage"> Sausage</label>
+            <label><input type="checkbox" name="toppings" value="Mushrooms"> Mushrooms</label>
+            <label><input type="checkbox" name="toppings" value="Onions"> Onions</label>
+            <label><input type="checkbox" name="toppings" value="Green peppers"> Green peppers</label>
+            <label><input type="checkbox" name="toppings" value="Olives"> Olives</label>
+            <label><input type="checkbox" name="toppings" value="Pineapple"> Pineapple</label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Quantity -->
+      <div class="form-group">
+        <label for="quantity">Quantity <span aria-hidden="true">*</span></label>
+        <input type="number" id="quantity" name="quantity" min="1" max="10" value="1"
+               required aria-required="true" aria-describedby="quantity-error">
+        <div id="quantity-error" class="field-error">Quantity must be between 1 and 10.</div>
+      </div>
+    </fieldset>
+
+    <!-- ===== 3. Extras ===== -->
+    <fieldset class="form-section">
+      <legend>Extras</legend>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="extras" value="Breadsticks"> Breadsticks (+$4.00)</label>
+        <label><input type="checkbox" name="extras" value="Soda"> Soda (+$2.00)</label>
+        <label><input type="checkbox" name="extras" value="Salad"> Salad (+$5.00)</label>
+      </div>
+    </fieldset>
+
+    <!-- ===== 4. Special Instructions ===== -->
+    <fieldset class="form-section">
+      <legend>Special Instructions</legend>
+      <div class="form-group">
+        <label for="instructions">Additional requests <span class="sr-only">(optional, max 200 characters)</span></label>
+        <textarea id="instructions" name="instructions" rows="3" maxlength="200"
+                  aria-describedby="instructions-counter"></textarea>
+        <div id="instructions-counter" class="char-counter" aria-live="polite">0 / 200</div>
+      </div>
+    </fieldset>
+
+    <!-- ===== 5. Payment ===== -->
+    <fieldset class="form-section">
+      <legend>Payment</legend>
+
+      <div class="form-group">
+        <label id="payment-label">Payment Method <span aria-hidden="true">*</span></label>
+        <div class="radio-group" role="radiogroup" aria-labelledby="payment-label" aria-required="true">
+          <label><input type="radio" name="paymentMethod" value="Card" checked> Card</label>
+          <label><input type="radio" name="paymentMethod" value="Cash"> Cash</label>
+        </div>
+      </div>
+
+      <!-- Card fields (conditional) -->
+      <div id="card-section" class="conditional-section visible">
+        <div class="form-group">
+          <label for="card-name">Name on Card <span aria-hidden="true">*</span></label>
+          <input type="text" id="card-name" name="cardName" autocomplete="cc-name"
+                 aria-describedby="card-name-error">
+          <div id="card-name-error" class="field-error">Name on card is required.</div>
+        </div>
+        <div class="form-group">
+          <label for="card-number">Card Number <span aria-hidden="true">*</span></label>
+          <input type="text" id="card-number" name="cardNumber" autocomplete="cc-number"
+                 inputmode="numeric" placeholder="XXXX XXXX XXXX XXXX"
+                 aria-describedby="card-number-error">
+          <div id="card-number-error" class="field-error">Card number must be 13–19 digits.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="card-exp">Expiration (MM/YY) <span aria-hidden="true">*</span></label>
+            <input type="text" id="card-exp" name="cardExp" autocomplete="cc-exp"
+                   placeholder="MM/YY" maxlength="5"
+                   aria-describedby="card-exp-error">
+            <div id="card-exp-error" class="field-error">Enter a valid future date (MM/YY).</div>
+          </div>
+          <div class="form-group">
+            <label for="card-cvv">CVV <span aria-hidden="true">*</span></label>
+            <input type="text" id="card-cvv" name="cardCvv" autocomplete="cc-csc"
+                   inputmode="numeric" maxlength="4"
+                   aria-describedby="card-cvv-error">
+            <div id="card-cvv-error" class="field-error">CVV must be 3 or 4 digits.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cash message (conditional) -->
+      <div id="cash-section" class="conditional-section">
+        <p><strong>💵 Cash on delivery/pickup.</strong> Please have exact change ready.</p>
+      </div>
+    </fieldset>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary">Place Order</button>
+    </div>
+  </form>
+
+</div><!-- /.form-col -->
+
+<!-- ===== Order Summary Panel ===== -->
+<aside class="summary-panel" aria-label="Order summary">
+  <div class="form-section">
+    <h2>Order Summary</h2>
+    <!-- Live region: announced politely on update -->
+    <div id="live-summary" aria-live="polite" aria-atomic="true">
+      <div class="summary-detail"><strong>Customer:</strong> <span id="sum-name">—</span></div>
+      <div class="summary-detail"><strong>Order Type:</strong> <span id="sum-order-type">Pickup</span></div>
+      <hr class="summary-hr">
+      <div class="summary-detail"><strong>Pizza:</strong> <span id="sum-pizza">Medium, Hand-tossed, Tomato, Normal cheese</span></div>
+      <div class="summary-detail"><strong>Toppings:</strong> <span id="sum-toppings">None</span></div>
+      <div class="summary-detail"><strong>Quantity:</strong> <span id="sum-qty">1</span></div>
+      <hr class="summary-hr">
+      <div class="summary-detail"><strong>Extras:</strong> <span id="sum-extras">None</span></div>
+      <hr class="summary-hr">
+      <div class="summary-item"><span class="summary-label">Pizza subtotal</span><span id="sum-pizza-subtotal">$12.00</span></div>
+      <div class="summary-item"><span class="summary-label">Extras</span><span id="sum-extras-total">$0.00</span></div>
+      <div class="summary-item"><span class="summary-label">Delivery fee</span><span id="sum-delivery-fee">$0.00</span></div>
+      <div class="summary-item"><span class="summary-label">Tax (8.5%)</span><span id="sum-tax">$1.02</span></div>
+      <div class="summary-item total"><span>Grand Total</span><span id="sum-grand-total">$13.02</span></div>
+    </div>
+  </div>
+</aside>
+
+</div><!-- /.container -->
+
+<!-- ========== CONFIRMATION VIEW ========== -->
+<div id="confirmation-view" class="confirmation-view" role="region" aria-label="Order confirmation">
+  <div class="form-section" style="margin-top:1rem;">
+    <h2 id="confirm-heading" tabindex="-1">✅ Order Confirmed!</h2>
+    <div class="order-meta">
+      <p>Order # <strong id="confirm-order-num"></strong></p>
+      <p>Placed on <span id="confirm-timestamp"></span></p>
+    </div>
+
+    <table>
+      <caption class="sr-only">Order details</caption>
+      <thead>
+        <tr><th>Item</th><th class="price-col">Price</th></tr>
+      </thead>
+      <tbody id="confirm-items"></tbody>
+      <tfoot id="confirm-totals"></tfoot>
+    </table>
+
+    <div id="confirm-extra-info"></div>
+
+    <div class="btn-row" style="margin-top:1.5rem;">
+      <button type="button" id="new-order-btn" class="btn btn-secondary">Start New Order</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* =========================================================
+   Pizza Order Form – Main Application Logic
+   ========================================================= */
+(function() {
+  'use strict';
+
+  /* ---------- Constants / Price Tables ---------- */
+  const PRICES = {
+    size: { Small: 10, Medium: 12, Large: 14 },
+    crust: { 'Gluten-free': 2 },
+    sauce: { Alfredo: 1, Pesto: 1.5 },
+    cheese: { Extra: 1 },
+    topping: 0.75,
+    extras: { Breadsticks: 4, Soda: 2, Salad: 5 },
+    deliveryFee: 3,
+    taxRate: 0.085
+  };
+
+  /* ---------- DOM References ---------- */
+  const form        = document.getElementById('pizza-form');
+  const formView    = document.getElementById('form-view');
+  const confirmView = document.getElementById('confirmation-view');
+  const errorSummary     = document.getElementById('error-summary');
+  const errorSummaryList = document.getElementById('error-summary-list');
+
+  /* Conditional sections */
+  const deliverySection = document.getElementById('delivery-section');
+  const cardSection     = document.getElementById('card-section');
+  const cashSection     = document.getElementById('cash-section');
+
+  /* Summary elements */
+  const sumName          = document.getElementById('sum-name');
+  const sumOrderType     = document.getElementById('sum-order-type');
+  const sumPizza         = document.getElementById('sum-pizza');
+  const sumToppings      = document.getElementById('sum-toppings');
+  const sumQty           = document.getElementById('sum-qty');
+  const sumExtras        = document.getElementById('sum-extras');
+  const sumPizzaSubtotal = document.getElementById('sum-pizza-subtotal');
+  const sumExtrasTotal   = document.getElementById('sum-extras-total');
+  const sumDeliveryFee   = document.getElementById('sum-delivery-fee');
+  const sumTax           = document.getElementById('sum-tax');
+  const sumGrandTotal    = document.getElementById('sum-grand-total');
+
+  /* Char counter */
+  const instructionsField   = document.getElementById('instructions');
+  const instructionsCounter = document.getElementById('instructions-counter');
+
+  /* ---------- Utility Helpers ---------- */
+  /** Format a number as currency */
+  function fmt(n) {
+    return '$' + n.toFixed(2);
+  }
+
+  /** Get selected value of a named radio group */
+  function radioVal(name) {
+    const el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  /** Get array of checked checkbox values */
+  function checkboxVals(name) {
+    return Array.from(form.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
+  }
+
+  /** Simple email regex */
+  function isValidEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  /* ---------- Pricing Engine ---------- */
+  function calculatePrices() {
+    var size   = document.getElementById('size').value;
+    var crust  = document.getElementById('crust').value;
+    var sauce  = document.getElementById('sauce').value;
+    var cheese = document.getElementById('cheese').value;
+    var toppings = checkboxVals('toppings');
+    var qty      = parseInt(document.getElementById('quantity').value, 10) || 1;
+    var extras   = checkboxVals('extras');
+    var orderType = radioVal('orderType');
+
+    var pizzaBase = PRICES.size[size] || 12;
+    var crustAdd  = PRICES.crust[crust] || 0;
+    var sauceAdd  = PRICES.sauce[sauce] || 0;
+    var cheeseAdd = PRICES.cheese[cheese] || 0;
+    var toppingsAdd = toppings.length * PRICES.topping;
+
+    var singlePizza = pizzaBase + crustAdd + sauceAdd + cheeseAdd + toppingsAdd;
+    var pizzaLine   = singlePizza * qty;
+
+    var extrasTotal = extras.reduce(function(sum, e) { return sum + (PRICES.extras[e] || 0); }, 0);
+
+    var deliveryFee = (orderType === 'Delivery') ? PRICES.deliveryFee : 0;
+
+    var subtotal = pizzaLine + extrasTotal + deliveryFee;
+    var tax      = subtotal * PRICES.taxRate;
+    var grandTotal = subtotal + tax;
+
+    return {
+      singlePizza: singlePizza,
+      pizzaLine: pizzaLine,
+      extrasTotal: extrasTotal,
+      deliveryFee: deliveryFee,
+      subtotal: subtotal,
+      tax: tax,
+      grandTotal: grandTotal,
+      /* pass-through for display */
+      size: size, crust: crust, sauce: sauce, cheese: cheese,
+      toppings: toppings, qty: qty, extras: extras, orderType: orderType
+    };
+  }
+
+  /* ---------- Live Order Summary (debounced) ---------- */
+  var summaryTimer = null;
+
+  function updateSummary() {
+    var p = calculatePrices();
+    var nameVal = document.getElementById('full-name').value.trim();
+
+    sumName.textContent      = nameVal || '—';
+    sumOrderType.textContent = p.orderType || 'Pickup';
+    sumPizza.textContent     = p.size + ', ' + p.crust + ', ' + p.sauce + ', ' + p.cheese + ' cheese';
+    sumToppings.textContent  = p.toppings.length ? p.toppings.join(', ') : 'None';
+    sumQty.textContent       = p.qty;
+    sumExtras.textContent    = p.extras.length ? p.extras.join(', ') : 'None';
+
+    sumPizzaSubtotal.textContent = fmt(p.pizzaLine);
+    sumExtrasTotal.textContent   = fmt(p.extrasTotal);
+    sumDeliveryFee.textContent   = fmt(p.deliveryFee);
+    sumTax.textContent           = fmt(p.tax);
+    sumGrandTotal.textContent    = fmt(p.grandTotal);
+  }
+
+  /** Debounced wrapper (~250ms) to avoid spamming screen readers */
+  function scheduleSummaryUpdate() {
+    if (summaryTimer) clearTimeout(summaryTimer);
+    summaryTimer = setTimeout(updateSummary, 250);
+  }
+
+  /* ---------- Conditional Section Toggles ---------- */
+  function toggleDelivery() {
+    var isDelivery = radioVal('orderType') === 'Delivery';
+    if (isDelivery) {
+      deliverySection.classList.add('visible');
+      /* Set required on delivery fields */
+      deliverySection.querySelectorAll('input').forEach(function(el) {
+        el.setAttribute('aria-required', 'true');
+        el.required = true;
+      });
+      /* Focus first field for accessibility */
+      document.getElementById('street').focus();
+    } else {
+      deliverySection.classList.remove('visible');
+      deliverySection.querySelectorAll('input').forEach(function(el) {
+        el.removeAttribute('aria-required');
+        el.required = false;
+        /* Clear validation state but keep values */
+        clearFieldError(el);
+      });
+    }
+    scheduleSummaryUpdate();
+  }
+
+  function togglePayment() {
+    var isCard = radioVal('paymentMethod') === 'Card';
+    if (isCard) {
+      cardSection.classList.add('visible');
+      cashSection.classList.remove('visible');
+      cardSection.querySelectorAll('input').forEach(function(el) {
+        el.setAttribute('aria-required', 'true');
+        el.required = true;
+      });
+      document.getElementById('card-name').focus();
+    } else {
+      cardSection.classList.remove('visible');
+      cashSection.classList.add('visible');
+      cardSection.querySelectorAll('input').forEach(function(el) {
+        el.removeAttribute('aria-required');
+        el.required = false;
+        clearFieldError(el);
+      });
+    }
+  }
+
+  /* ---------- Validation ---------- */
+  /** Show error on a single field */
+  function showFieldError(field, errorEl) {
+    field.setAttribute('aria-invalid', 'true');
+    if (errorEl) errorEl.style.display = 'block';
+  }
+
+  /** Clear error on a single field */
+  function clearFieldError(field) {
+    field.removeAttribute('aria-invalid');
+    var errId = field.getAttribute('aria-describedby');
+    if (errId) {
+      var errEl = document.getElementById(errId);
+      if (errEl) errEl.style.display = 'none';
+    }
+  }
+
+  /** Validate the entire form; returns array of { field, errorId, message } */
+  function validateForm() {
+    var errors = [];
+
+    /* Helper */
+    function check(id, condition, message) {
+      var field = document.getElementById(id);
+      var errEl = document.getElementById(id + '-error');
+      if (!condition) {
+        showFieldError(field, errEl);
+        errors.push({ fieldId: id, message: message });
+      } else {
+        clearFieldError(field);
+      }
+    }
+
+    /* Customer info */
+    var name  = document.getElementById('full-name').value.trim();
+    var email = document.getElementById('email').value.trim();
+    check('full-name', name.length > 0, 'Full name is required.');
+    check('email', isValidEmail(email), 'Please enter a valid email address.');
+
+    /* Delivery address (only if Delivery selected) */
+    if (radioVal('orderType') === 'Delivery') {
+      check('street', document.getElementById('street').value.trim().length > 0, 'Street address is required for delivery.');
+      check('city',   document.getElementById('city').value.trim().length > 0,   'City is required for delivery.');
+      check('state',  document.getElementById('state').value.trim().length > 0,  'State/Region is required for delivery.');
+      check('postal', document.getElementById('postal').value.trim().length > 0, 'Postal code is required for delivery.');
+    }
+
+    /* Pizza builder (selects always have values, but validate quantity) */
+    var qty = parseInt(document.getElementById('quantity').value, 10);
+    check('quantity', qty >= 1 && qty <= 10, 'Quantity must be between 1 and 10.');
+
+    /* Payment – card fields */
+    if (radioVal('paymentMethod') === 'Card') {
+      check('card-name', document.getElementById('card-name').value.trim().length > 0, 'Name on card is required.');
+
+      /* Card number: strip spaces/dashes, check 13-19 digits */
+      var rawCard = document.getElementById('card-number').value.replace(/[\s\-]/g, '');
+      check('card-number', /^\d{13,19}$/.test(rawCard), 'Card number must be 13–19 digits.');
+
+      /* Expiration MM/YY */
+      var expVal = document.getElementById('card-exp').value.trim();
+      var expValid = false;
+      var expMatch = expVal.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+      if (expMatch) {
+        var expMonth = parseInt(expMatch[1], 10);
+        var expYear  = 2000 + parseInt(expMatch[2], 10);
+        var now = new Date();
+        var curMonth = now.getMonth() + 1;
+        var curYear  = now.getFullYear();
+        expValid = (expYear > curYear) || (expYear === curYear && expMonth >= curMonth);
+      }
+      check('card-exp', expValid, 'Enter a valid future date (MM/YY).');
+
+      /* CVV 3-4 digits */
+      var cvv = document.getElementById('card-cvv').value.trim();
+      check('card-cvv', /^\d{3,4}$/.test(cvv), 'CVV must be 3 or 4 digits.');
+    }
+
+    return errors;
+  }
+
+  /** Build and show the error summary at the top */
+  function showErrorSummary(errors) {
+    errorSummaryList.innerHTML = '';
+    errors.forEach(function(err) {
+      var li = document.createElement('li');
+      var a  = document.createElement('a');
+      a.href = '#' + err.fieldId;
+      a.textContent = err.message;
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var target = document.getElementById(err.fieldId);
+        if (target) { target.focus(); target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      });
+      li.appendChild(a);
+      errorSummaryList.appendChild(li);
+    });
+    errorSummary.style.display = 'block';
+    errorSummary.focus();
+  }
+
+  function hideErrorSummary() {
+    errorSummary.style.display = 'none';
+    errorSummaryList.innerHTML = '';
+  }
+
+  /* ---------- Inline Validation on Blur ---------- */
+  function addInlineValidation() {
+    /* Required text fields: validate on blur */
+    var fieldsToWatch = ['full-name', 'email', 'street', 'city', 'state', 'postal',
+                         'card-name', 'card-number', 'card-exp', 'card-cvv', 'quantity'];
+    fieldsToWatch.forEach(function(id) {
+      var field = document.getElementById(id);
+      field.addEventListener('blur', function() {
+        /* Only validate if field is required (visible section) */
+        if (!field.required && !field.getAttribute('aria-required')) return;
+        /* Re-run full validation silently, then mark just this one */
+        validateSingleField(id);
+      });
+    });
+  }
+
+  function validateSingleField(id) {
+    var field = document.getElementById(id);
+    var errEl = document.getElementById(id + '-error');
+    var val   = field.value.trim();
+    var valid = true;
+
+    switch (id) {
+      case 'full-name':
+        valid = val.length > 0; break;
+      case 'email':
+        valid = isValidEmail(val); break;
+      case 'street': case 'city': case 'state': case 'postal': case 'card-name':
+        valid = val.length > 0; break;
+      case 'card-number':
+        valid = /^\d{13,19}$/.test(val.replace(/[\s\-]/g, '')); break;
+      case 'card-exp':
+        var m = val.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+        if (m) {
+          var ey = 2000 + parseInt(m[2], 10);
+          var em = parseInt(m[1], 10);
+          var now = new Date();
+          valid = (ey > now.getFullYear()) || (ey === now.getFullYear() && em >= now.getMonth() + 1);
+        } else { valid = false; }
+        break;
+      case 'card-cvv':
+        valid = /^\d{3,4}$/.test(val); break;
+      case 'quantity':
+        var q = parseInt(val, 10);
+        valid = q >= 1 && q <= 10; break;
+    }
+
+    if (valid) { clearFieldError(field); }
+    else { showFieldError(field, errEl); }
+  }
+
+  /* ---------- Confirmation View ---------- */
+  function showConfirmation() {
+    var p = calculatePrices();
+    var nameVal = document.getElementById('full-name').value.trim();
+    var emailVal = document.getElementById('email').value.trim();
+    var phoneVal = document.getElementById('phone').value.trim();
+    var orderType = p.orderType;
+    var payment = radioVal('paymentMethod');
+    var instructions = instructionsField.value.trim();
+
+    /* Order number & timestamp */
+    var orderNum = String(Math.floor(100000 + Math.random() * 900000));
+    document.getElementById('confirm-order-num').textContent = orderNum;
+    document.getElementById('confirm-timestamp').textContent = new Date().toLocaleString();
+
+    /* Build items table */
+    var tbody = document.getElementById('confirm-items');
+    tbody.innerHTML = '';
+
+    function addRow(label, price) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + label + '</td><td class="price-col">' + fmt(price) + '</td>';
+      tbody.appendChild(tr);
+    }
+
+    /* Pizza line */
+    var pizzaDesc = p.size + ' pizza, ' + p.crust + ' crust, ' + p.sauce + ' sauce, ' + p.cheese + ' cheese';
+    if (p.toppings.length) pizzaDesc += ' + ' + p.toppings.join(', ');
+    pizzaDesc += ' (×' + p.qty + ')';
+    addRow(pizzaDesc, p.pizzaLine);
+
+    /* Extras */
+    p.extras.forEach(function(e) {
+      addRow(e, PRICES.extras[e]);
+    });
+
+    /* Totals in tfoot */
+    var tfoot = document.getElementById('confirm-totals');
+    tfoot.innerHTML = '';
+    function addTotalRow(label, val, cls) {
+      var tr = document.createElement('tr');
+      if (cls) tr.className = cls;
+      tr.innerHTML = '<th>' + label + '</th><td class="price-col">' + fmt(val) + '</td>';
+      tfoot.appendChild(tr);
+    }
+    addTotalRow('Subtotal', p.pizzaLine + p.extrasTotal);
+    if (p.deliveryFee > 0) addTotalRow('Delivery Fee', p.deliveryFee);
+    addTotalRow('Tax (8.5%)', p.tax);
+    addTotalRow('Grand Total', p.grandTotal, 'total');
+
+    /* Extra info */
+    var extraInfo = document.getElementById('confirm-extra-info');
+    var html = '<p><strong>Customer:</strong> ' + escHTML(nameVal) + ' (' + escHTML(emailVal) + ')' + (phoneVal ? ' / ' + escHTML(phoneVal) : '') + '</p>';
+    html += '<p><strong>Order Type:</strong> ' + orderType + '</p>';
+    if (orderType === 'Delivery') {
+      html += '<p><strong>Delivery Address:</strong> ' +
+        escHTML(document.getElementById('street').value) + ', ' +
+        escHTML(document.getElementById('city').value) + ', ' +
+        escHTML(document.getElementById('state').value) + ' ' +
+        escHTML(document.getElementById('postal').value) + '</p>';
+    }
+    html += '<p><strong>Payment:</strong> ' + payment + '</p>';
+    if (instructions) {
+      html += '<p><strong>Special Instructions:</strong> ' + escHTML(instructions) + '</p>';
+    }
+    extraInfo.innerHTML = html;
+
+    /* Show confirmation, hide form */
+    formView.style.display = 'none';
+    confirmView.style.display = 'block';
+
+    /* Move focus to confirmation heading */
+    document.getElementById('confirm-heading').focus();
+  }
+
+  function escHTML(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  /* ---------- New Order / Reset ---------- */
+  function resetForm() {
+    form.reset();
+    hideErrorSummary();
+    /* Reset conditional sections to initial state */
+    deliverySection.classList.remove('visible');
+    deliverySection.querySelectorAll('input').forEach(function(el) {
+      el.removeAttribute('aria-required');
+      el.required = false;
+      clearFieldError(el);
+    });
+    cardSection.classList.add('visible');
+    cashSection.classList.remove('visible');
+    cardSection.querySelectorAll('input').forEach(function(el) {
+      el.setAttribute('aria-required', 'true');
+      el.required = true;
+      clearFieldError(el);
+    });
+    /* Clear all field errors */
+    form.querySelectorAll('[aria-invalid]').forEach(function(el) {
+      clearFieldError(el);
+    });
+
+    instructionsCounter.textContent = '0 / 200';
+
+    confirmView.style.display = 'none';
+    formView.style.display = '';
+
+    updateSummary();
+    document.getElementById('full-name').focus();
+  }
+
+  /* ---------- Event Listeners ---------- */
+  /* Order type toggle */
+  form.querySelectorAll('input[name="orderType"]').forEach(function(el) {
+    el.addEventListener('change', toggleDelivery);
+  });
+
+  /* Payment method toggle */
+  form.querySelectorAll('input[name="paymentMethod"]').forEach(function(el) {
+    el.addEventListener('change', togglePayment);
+  });
+
+  /* Character counter */
+  instructionsField.addEventListener('input', function() {
+    var len = instructionsField.value.length;
+    instructionsCounter.textContent = len + ' / 200';
+  });
+
+  /* Listen for ANY form input change to update summary */
+  form.addEventListener('input', scheduleSummaryUpdate);
+  form.addEventListener('change', scheduleSummaryUpdate);
+
+  /* Submit handler */
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    hideErrorSummary();
+
+    var errors = validateForm();
+    if (errors.length > 0) {
+      showErrorSummary(errors);
+      return;
+    }
+
+    /* All valid — show confirmation */
+    showConfirmation();
+  });
+
+  /* New order button */
+  document.getElementById('new-order-btn').addEventListener('click', resetForm);
+
+  /* Inline blur validation */
+  addInlineValidation();
+
+  /* Initial summary update */
+  updateSummary();
+
+  /* Set initial card fields as required */
+  cardSection.querySelectorAll('input').forEach(function(el) {
+    el.setAttribute('aria-required', 'true');
+    el.required = true;
+  });
+
+})();
+</script>
+</body>
+</html>
