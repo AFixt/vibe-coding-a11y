@@ -1,6 +1,6 @@
-# Vibe Coding Accessibility: CSUN 2026
+# Vibe Coding Accessibility
 
-This repo is meant to accompany my presentation at CSUN 2026: Vibe Coding Accessibility.
+This repo is meant to accompany my presentation: Vibe Coding Accessibility.
 
 There's really not much here unless you want to directly inspect the output of the AI coding tools mentioned in the talk. [Notes.md](notes.md) provdes a little bit of background on the talk.
 
