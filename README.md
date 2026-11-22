@@ -2,11 +2,11 @@
 
 This repo is meant to accompany my presentation: Vibe Coding Accessibility.
 
-There's really not much here unless you want to directly inspect the output of the AI coding tools mentioned in the talk. [Notes.md](notes.md) provdes a little bit of background on the talk.
+There's really not much here unless you want to directly inspect the output of the AI coding tools mentioned in the talk. [Notes.md](notes.md) provides a little bit of background on the talk.
 
 ## The results
 
-Below are links to the output from the AI coding tools mentioned in the talk. Each of these are one-shot output from the prompts they were given. No refinments or reprompting occurred to get to the results listed below.
+Below are links to the output from the AI coding tools mentioned in the talk. Each of these are one-shot output from the prompts they were given. No refinements or reprompting occurred to get to the results listed below.
 
 ### [Prompt 1](prompt1.md)
 
