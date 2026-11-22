@@ -6,7 +6,7 @@ There's really not much here unless you want to directly inspect the output of t
 
 ## The results
 
-Below are links to the output from the AI coding tools mentioned in the talk. Each of these are one-shot output from the prompts they were given. No refinements or reprompting occurred to get to the results listed below.
+Below are links to the output from the AI coding tools mentioned in the talk. Each of these is one-shot output from the prompts they were given. No refinements or reprompting occurred to get to the results listed below.
 
 ### [Prompt 1](prompt1.md)
 
